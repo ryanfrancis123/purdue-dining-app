@@ -1,127 +1,134 @@
 import { useState } from "react";
 import {
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 
 import { sampleMenuItems } from "../../src/data/sampleMenuItems";
-import { UserGoal, MealRecommendation } from "../../src/types/menu";
 import { recommendMeals } from "../../src/utils/recommendMeals";
-
-const DEFAULT_DATE = "2026-08-24";
-const DEFAULT_MEAL_PERIOD = "Dinner";
-const DEFAULT_DINING_HALL = "Wiley";
+import { MacroTargets } from "../../src/types/menu";
 
 export default function HomeScreen() {
-  const [calorieInput, setCalorieInput] = useState("610");
-  const [proteinInput, setProteinInput] = useState("50");
-  const [carbInput, setCarbInput] = useState("70");
-  const [recommendations, setRecommendations] = useState<
-    MealRecommendation[]
-  >([]);
+  const [caloriesInput, setCaloriesInput] = useState("600");
+  const [proteinInput, setProteinInput] = useState("40");
+  const [carbsInput, setCarbsInput] = useState("60");
+
+  const [targets, setTargets] = useState<MacroTargets>({
+    calories: 600,
+    protein: 40,
+    carbs: 60,
+  });
+
+  const recommendations = recommendMeals(sampleMenuItems, targets);
 
   function handleGenerateRecommendations() {
-    const targetCalories = Number(calorieInput);
-    const targetProtein = Number(proteinInput);
-    const targetCarbs = Number(carbInput);
+    const calories = Number(caloriesInput);
+    const protein = Number(proteinInput);
+    const carbs = Number(carbsInput);
 
     if (
-      Number.isNaN(targetCalories) ||
-      Number.isNaN(targetProtein) ||
-      Number.isNaN(targetCarbs)
+      Number.isNaN(calories) ||
+      Number.isNaN(protein) ||
+      Number.isNaN(carbs)
     ) {
-      setRecommendations([]);
       return;
     }
 
-    const userGoal: UserGoal = {
-      targetCalories,
-      targetProtein,
-      targetCarbs,
-      mealPeriod: DEFAULT_MEAL_PERIOD,
-      date: DEFAULT_DATE,
-      requiredDietaryTags: [],
-      allergensToAvoid: [],
-      preferredDiningHall: DEFAULT_DINING_HALL,
-    };
-
-    const results = recommendMeals(sampleMenuItems, userGoal);
-    setRecommendations(results);
+    setTargets({
+      calories,
+      protein,
+      carbs,
+    });
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Purdue Dining Macro Planner</Text>
 
-      <View style={styles.inputCard}>
-        <Text style={styles.sectionTitle}>Enter Your Meal Targets</Text>
+      <Text style={styles.subtitle}>
+        Enter your macro targets and get realistic meal combinations from sample
+        dining hall data.
+      </Text>
 
-        <Text style={styles.label}>Calories</Text>
-        <TextInput
-          style={styles.input}
-          value={calorieInput}
-          onChangeText={setCalorieInput}
-          keyboardType="numeric"
-          placeholder="Example: 610"
-        />
+      <View style={styles.inputSection}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Calories</Text>
+          <TextInput
+            style={styles.input}
+            value={caloriesInput}
+            onChangeText={setCaloriesInput}
+            keyboardType="numeric"
+            placeholder="600"
+          />
+        </View>
 
-        <Text style={styles.label}>Protein (g)</Text>
-        <TextInput
-          style={styles.input}
-          value={proteinInput}
-          onChangeText={setProteinInput}
-          keyboardType="numeric"
-          placeholder="Example: 50"
-        />
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Protein (g)</Text>
+          <TextInput
+            style={styles.input}
+            value={proteinInput}
+            onChangeText={setProteinInput}
+            keyboardType="numeric"
+            placeholder="40"
+          />
+        </View>
 
-        <Text style={styles.label}>Carbs (g)</Text>
-        <TextInput
-          style={styles.input}
-          value={carbInput}
-          onChangeText={setCarbInput}
-          keyboardType="numeric"
-          placeholder="Example: 70"
-        />
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Carbs (g)</Text>
+          <TextInput
+            style={styles.input}
+            value={carbsInput}
+            onChangeText={setCarbsInput}
+            keyboardType="numeric"
+            placeholder="60"
+          />
+        </View>
 
-        <Pressable
+        <TouchableOpacity
           style={styles.button}
           onPress={handleGenerateRecommendations}
         >
-          <Text style={styles.buttonText}>Find Meals</Text>
-        </Pressable>
+          <Text style={styles.buttonText}>Generate Meal Recommendations</Text>
+        </TouchableOpacity>
       </View>
 
-      <Text style={styles.sectionTitle}>Top Recommendations</Text>
-
-      {recommendations.length === 0 ? (
-        <Text style={styles.emptyText}>
-          Enter your targets and press Find Meals.
+      <View style={styles.resultsHeader}>
+        <Text style={styles.sectionTitle}>Top Meal Options</Text>
+        <Text style={styles.targetText}>
+          Target: {targets.calories} cal, {targets.protein}g protein,{" "}
+          {targets.carbs}g carbs
         </Text>
-      ) : (
-        recommendations.map((recommendation, index) => (
-          <View key={index} style={styles.card}>
-            <Text style={styles.cardTitle}>Recommendation #{index + 1}</Text>
+      </View>
 
-            <Text style={styles.items}>
-              {recommendation.items.map((item) => item.name).join(", ")}
-            </Text>
+      {recommendations.map((meal, index) => (
+        <View key={meal.id} style={styles.card}>
+          <Text style={styles.cardTitle}>Meal Option {index + 1}</Text>
 
-            <Text>Calories: {recommendation.totalCalories}</Text>
-            <Text>Protein: {recommendation.totalProtein}g</Text>
-            <Text>Carbs: {recommendation.totalCarbs}g</Text>
-            <Text>Fat: {recommendation.totalFat}g</Text>
-            <Text>Score: {recommendation.score}</Text>
-
-            <Text style={styles.explanation}>
-              {recommendation.explanation}
-            </Text>
+          <View style={styles.itemList}>
+            {meal.items.map((item) => (
+              <Text key={item.id} style={styles.itemText}>
+                • {item.name}
+              </Text>
+            ))}
           </View>
-        ))
-      )}
+
+          <View style={styles.macroRow}>
+            <Text style={styles.macroText}>{meal.totalCalories} cal</Text>
+            <Text style={styles.macroText}>{meal.totalProtein}g protein</Text>
+          </View>
+
+          <View style={styles.macroRow}>
+            <Text style={styles.macroText}>{meal.totalCarbs}g carbs</Text>
+            <Text style={styles.macroText}>{meal.totalFat}g fat</Text>
+          </View>
+
+          <Text style={styles.explanation}>{meal.explanation}</Text>
+        </View>
+      ))}
     </ScrollView>
   );
 }
@@ -129,72 +136,106 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f8f8f8",
+  },
+  content: {
     padding: 20,
-    backgroundColor: "#ffffff",
+    paddingBottom: 40,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "700",
-    marginBottom: 20,
+    marginBottom: 8,
+    color: "#111",
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 10,
-    marginTop: 10,
+  subtitle: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: "#555",
+    marginBottom: 24,
   },
-  inputCard: {
+  inputSection: {
+    backgroundColor: "#fff",
     padding: 16,
-    borderRadius: 12,
-    backgroundColor: "#f2f2f2",
-    marginBottom: 20,
+    borderRadius: 14,
+    marginBottom: 24,
+  },
+  inputGroup: {
+    marginBottom: 14,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    marginTop: 10,
-    marginBottom: 4,
+    marginBottom: 6,
+    color: "#333",
   },
   input: {
-    backgroundColor: "#ffffff",
-    borderRadius: 8,
-    padding: 12,
     borderWidth: 1,
-    borderColor: "#cccccc",
+    borderColor: "#ddd",
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: "#fff",
   },
   button: {
-    marginTop: 16,
-    backgroundColor: "#111111",
+    backgroundColor: "#111",
     padding: 14,
     borderRadius: 10,
+    marginTop: 6,
     alignItems: "center",
   },
   buttonText: {
-    color: "#ffffff",
-    fontWeight: "700",
+    color: "#fff",
     fontSize: 16,
+    fontWeight: "700",
   },
-  emptyText: {
-    color: "#666666",
-    marginTop: 8,
+  resultsHeader: {
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111",
+    marginBottom: 4,
+  },
+  targetText: {
+    fontSize: 14,
+    color: "#666",
   },
   card: {
+    backgroundColor: "#fff",
     padding: 16,
-    borderRadius: 12,
-    backgroundColor: "#f7f7f7",
-    marginBottom: 16,
+    borderRadius: 14,
+    marginBottom: 14,
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
+    fontWeight: "700",
+    marginBottom: 10,
+    color: "#111",
   },
-  items: {
-    fontWeight: "500",
-    marginBottom: 8,
+  itemList: {
+    marginBottom: 12,
+  },
+  itemText: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 4,
+  },
+  macroRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  macroText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#222",
   },
   explanation: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#555",
     marginTop: 10,
-    fontStyle: "italic",
   },
 });

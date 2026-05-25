@@ -1,44 +1,10 @@
-import { MealRecommendation, MenuItem, UserGoal } from "../types/menu";
+import {
+  MacroTargets,
+  MealRecommendation,
+  MenuItem,
+} from "../types/menu";
 
-function hasBlockedAllergen(item: MenuItem, allergensToAvoid: string[]): boolean {
-  return item.allergens.some((allergen) =>
-    allergensToAvoid.includes(allergen)
-  );
-}
-
-function hasRequiredDietaryTags(
-  item: MenuItem,
-  requiredDietaryTags: string[]
-): boolean {
-  return requiredDietaryTags.every((tag) =>
-    item.dietaryTags.includes(tag)
-  );
-}
-
-function filterMenuItems(items: MenuItem[], goal: UserGoal): MenuItem[] {
-  return items.filter((item) => {
-    if (!item.available) return false;
-    if (item.date !== goal.date) return false;
-    if (item.mealPeriod !== goal.mealPeriod) return false;
-
-    if (
-      goal.preferredDiningHall &&
-      item.diningHall !== goal.preferredDiningHall
-    ) {
-      return false;
-    }
-
-    if (hasBlockedAllergen(item, goal.allergensToAvoid)) return false;
-
-    if (!hasRequiredDietaryTags(item, goal.requiredDietaryTags)) {
-      return false;
-    }
-
-    return true;
-  });
-}
-
-function calculateTotals(items: MenuItem[]) {
+function getMealTotals(items: MenuItem[]) {
   return items.reduce(
     (totals, item) => {
       return {
@@ -62,62 +28,86 @@ function calculateScore(totals: {
   protein: number;
   carbs: number;
   fat: number;
-}, goal: UserGoal): number {
-  const calorieDiff = Math.abs(totals.calories - goal.targetCalories);
-  const proteinDiff = Math.abs(totals.protein - goal.targetProtein);
-  const carbDiff = Math.abs(totals.carbs - goal.targetCarbs);
+}, targets: MacroTargets) {
+  const calorieDifference = Math.abs(totals.calories - targets.calories);
+  const proteinDifference = Math.abs(totals.protein - targets.protein);
+  const carbDifference = Math.abs(totals.carbs - targets.carbs);
 
-  let score = calorieDiff + proteinDiff * 4 + carbDiff * 2;
-
-  if (goal.targetFat !== undefined) {
-    const fatDiff = Math.abs(totals.fat - goal.targetFat);
-    score += fatDiff;
-  }
-
-  return score;
+  return calorieDifference * 1 + proteinDifference * 8 + carbDifference * 3;
 }
 
-function createExplanation(
-  recommendation: Omit<MealRecommendation, "explanation">
-): string {
-  const itemNames = recommendation.items.map((item) => item.name).join(", ");
+function buildExplanation(
+  totals: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  },
+  targets: MacroTargets
+) {
+  const calorieDifference = totals.calories - targets.calories;
+  const proteinDifference = totals.protein - targets.protein;
+  const carbDifference = totals.carbs - targets.carbs;
 
-  return `This meal combines ${itemNames}. Estimated macros: ${recommendation.totalProtein}g protein, ${recommendation.totalCarbs}g carbs, ${recommendation.totalFat}g fat, and ${recommendation.totalCalories} calories.`;
+  const calorieText =
+    calorieDifference === 0
+      ? "matches your calorie target"
+      : calorieDifference > 0
+      ? `${calorieDifference} calories over your target`
+      : `${Math.abs(calorieDifference)} calories under your target`;
+
+  const proteinText =
+    proteinDifference === 0
+      ? "matches your protein target"
+      : proteinDifference > 0
+      ? `${proteinDifference}g protein over your target`
+      : `${Math.abs(proteinDifference)}g protein under your target`;
+
+  const carbText =
+    carbDifference === 0
+      ? "matches your carb target"
+      : carbDifference > 0
+      ? `${carbDifference}g carbs over your target`
+      : `${Math.abs(carbDifference)}g carbs under your target`;
+
+  return `This meal ${calorieText}, ${proteinText}, and ${carbText}.`;
 }
 
 export function recommendMeals(
   items: MenuItem[],
-  goal: UserGoal
+  targets: MacroTargets
 ): MealRecommendation[] {
-  const validItems = filterMenuItems(items, goal);
+  const proteins = items.filter((item) => item.category === "protein");
+  const carbs = items.filter((item) => item.category === "carb");
+  const sides = items.filter(
+    (item) =>
+      item.category === "vegetable" ||
+      item.category === "side" ||
+      item.category === "fruit"
+  );
 
   const recommendations: MealRecommendation[] = [];
 
-  for (let i = 0; i < validItems.length; i++) {
-    for (let j = i + 1; j < validItems.length; j++) {
-      for (let k = j + 1; k < validItems.length; k++) {
-        const mealItems = [validItems[i], validItems[j], validItems[k]];
-        const totals = calculateTotals(mealItems);
-        const score = calculateScore(totals, goal);
+  for (const protein of proteins) {
+    for (const carb of carbs) {
+      for (const side of sides) {
+        const mealItems = [protein, carb, side];
+        const totals = getMealTotals(mealItems);
+        const score = calculateScore(totals, targets);
 
-        const recommendationWithoutExplanation = {
+        recommendations.push({
+          id: `${protein.id}-${carb.id}-${side.id}`,
           items: mealItems,
           totalCalories: totals.calories,
           totalProtein: totals.protein,
           totalCarbs: totals.carbs,
           totalFat: totals.fat,
           score,
-        };
-
-        recommendations.push({
-          ...recommendationWithoutExplanation,
-          explanation: createExplanation(recommendationWithoutExplanation),
+          explanation: buildExplanation(totals, targets),
         });
       }
     }
   }
 
-  return recommendations
-    .sort((a, b) => a.score - b.score)
-    .slice(0, 3);
+  return recommendations.sort((a, b) => a.score - b.score).slice(0, 5);
 }

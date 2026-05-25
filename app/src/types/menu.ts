@@ -1,40 +1,62 @@
-export type MealPeriod = "Breakfast" | "Lunch" | "Dinner";
+export type MenuCategory =
+  | "protein"
+  | "carb"
+  | "vegetable"
+  | "fruit"
+  | "side"
+  | "dessert"
+  | "drink"
+  | "sauce"
+  | "other";
 
-export type MenuItem = {
+export type DiningHall =
+  | "Wiley"
+  | "Windsor"
+  | "Ford"
+  | "Earhart"
+  | "Hillenbrand"
+  | "Unknown";
+
+export type MealPeriod =
+  | "breakfast"
+  | "lunch"
+  | "dinner"
+  | "all_day";
+
+export interface MenuItem {
   id: string;
   name: string;
-  diningHall: string;
+
+  diningHall: DiningHall;
   mealPeriod: MealPeriod;
-  station: string;
-  date: string;
-  servingSize: string;
+  category: MenuCategory;
+
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
-  dietaryTags: string[];
+
   allergens: string[];
-  available: boolean;
-};
+  dietaryTags: string[];
 
-export type UserGoal = {
-  targetCalories: number;
-  targetProtein: number;
-  targetCarbs: number;
-  targetFat?: number;
-  mealPeriod: MealPeriod;
-  date: string;
-  requiredDietaryTags: string[];
-  allergensToAvoid: string[];
-  preferredDiningHall?: string;
-};
+  servingSize?: string;
+}
 
-export type MealRecommendation = {
+export interface MacroTargets {
+  calories: number;
+  protein: number;
+  carbs: number;
+}
+
+export interface MealRecommendation {
+  id: string;
   items: MenuItem[];
+
   totalCalories: number;
   totalProtein: number;
   totalCarbs: number;
   totalFat: number;
+
   score: number;
   explanation: string;
-};
+}
