@@ -231,31 +231,41 @@ export default function HomeScreen() {
         </Text>
       </View>
 
-      {recommendations.map((meal, index) => (
-        <View key={meal.id} style={styles.card}>
-          <Text style={styles.cardTitle}>Meal Option {index + 1}</Text>
-
-          <View style={styles.itemList}>
-            {meal.items.map((item) => (
-              <Text key={item.id} style={styles.itemText}>
-                • {item.name}
-              </Text>
-            ))}
-          </View>
-
-          <View style={styles.macroRow}>
-            <Text style={styles.macroText}>{meal.totalCalories} cal</Text>
-            <Text style={styles.macroText}>{meal.totalProtein}g protein</Text>
-          </View>
-
-          <View style={styles.macroRow}>
-            <Text style={styles.macroText}>{meal.totalCarbs}g carbs</Text>
-            <Text style={styles.macroText}>{meal.totalFat}g fat</Text>
-          </View>
-
-          <Text style={styles.explanation}>{meal.explanation}</Text>
+      {recommendations.length === 0 ? (
+        <View style={styles.emptyStateCard}>
+          <Text style={styles.emptyStateTitle}>No meal recommendations found</Text>
+          <Text style={styles.emptyStateText}>
+            Try changing your meal period, lowering your macro targets, or removing
+            one of the allergen filters.
+          </Text>
         </View>
-      ))}
+      ) : (
+        recommendations.map((meal, index) => (
+          <View key={meal.id} style={styles.card}>
+            <Text style={styles.cardTitle}>Meal Option {index + 1}</Text>
+
+            <View style={styles.itemList}>
+              {meal.items.map((item) => (
+                <Text key={item.id} style={styles.itemText}>
+                  • {item.name}
+                </Text>
+              ))}
+            </View>
+
+            <View style={styles.macroRow}>
+              <Text style={styles.macroText}>{meal.totalCalories} cal</Text>
+              <Text style={styles.macroText}>{meal.totalProtein}g protein</Text>
+            </View>
+
+            <View style={styles.macroRow}>
+              <Text style={styles.macroText}>{meal.totalCarbs}g carbs</Text>
+              <Text style={styles.macroText}>{meal.totalFat}g fat</Text>
+            </View>
+
+            <Text style={styles.explanation}>{meal.explanation}</Text>
+          </View>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -402,4 +412,21 @@ const styles = StyleSheet.create({
   activeFilterButtonText: {
     color: "#fff",
   },
+  emptyStateCard: {
+  backgroundColor: "#fff",
+  padding: 18,
+  borderRadius: 14,
+  marginBottom: 14,
+},
+emptyStateTitle: {
+  fontSize: 18,
+  fontWeight: "700",
+  color: "#111",
+  marginBottom: 8,
+},
+emptyStateText: {
+  fontSize: 14,
+  lineHeight: 20,
+  color: "#555",
+},
 });
