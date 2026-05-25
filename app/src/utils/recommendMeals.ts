@@ -1,5 +1,6 @@
 import {
   Allergen,
+  DiningHall,
   MacroTargets,
   MealPeriod,
   MealRecommendation,
@@ -79,7 +80,8 @@ export function recommendMeals(
   items: MenuItem[],
   targets: MacroTargets,
   selectedMealPeriod?: MealPeriod,
-  excludedAllergens: Allergen[] = []
+  excludedAllergens: Allergen[] = [],
+  selectedDiningHall?: DiningHall
 ): MealRecommendation[] {
   const filteredItems = items.filter((item) => {
     const matchesMealPeriod =
@@ -87,11 +89,15 @@ export function recommendMeals(
       item.mealPeriod === selectedMealPeriod ||
       item.mealPeriod === "all_day";
 
+    const matchesDiningHall =
+      selectedDiningHall === undefined ||
+      item.diningHall === selectedDiningHall;
+
     const hasExcludedAllergen = item.allergens.some((allergen) =>
       excludedAllergens.includes(allergen)
     );
 
-  return matchesMealPeriod && !hasExcludedAllergen;
+  return matchesMealPeriod && matchesDiningHall && !hasExcludedAllergen;
 });
 
   const proteins = filteredItems.filter((item) => item.category === "protein");

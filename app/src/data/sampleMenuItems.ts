@@ -4,7 +4,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "grilled-chicken-breast",
     name: "Grilled Chicken Breast",
-    diningHall: "Unknown",
+    diningHall: "Wiley",
     mealPeriod: "all_day",
     category: "protein",
     calories: 180,
@@ -18,7 +18,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "turkey-burger-patty",
     name: "Turkey Burger Patty",
-    diningHall: "Unknown",
+    diningHall: "Ford",
     mealPeriod: "lunch",
     category: "protein",
     calories: 200,
@@ -32,7 +32,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "scrambled-eggs",
     name: "Scrambled Eggs",
-    diningHall: "Unknown",
+    diningHall: "Earhart",
     mealPeriod: "breakfast",
     category: "protein",
     calories: 190,
@@ -46,7 +46,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "tofu",
     name: "Tofu",
-    diningHall: "Unknown",
+    diningHall: "Windsor",
     mealPeriod: "lunch",
     category: "protein",
     calories: 150,
@@ -60,7 +60,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "greek-yogurt",
     name: "Greek Yogurt",
-    diningHall: "Unknown",
+    diningHall: "Hillenbrand",
     mealPeriod: "breakfast",
     category: "protein",
     calories: 130,
@@ -75,7 +75,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "brown-rice",
     name: "Brown Rice",
-    diningHall: "Unknown",
+    diningHall: "Wiley",
     mealPeriod: "lunch",
     category: "carb",
     calories: 215,
@@ -89,7 +89,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "pasta",
     name: "Pasta",
-    diningHall: "Unknown",
+    diningHall: "Windsor",
     mealPeriod: "lunch",
     category: "carb",
     calories: 220,
@@ -103,7 +103,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "oatmeal",
     name: "Oatmeal",
-    diningHall: "Unknown",
+    diningHall: "Earhart",
     mealPeriod: "breakfast",
     category: "carb",
     calories: 160,
@@ -117,7 +117,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "whole-wheat-bread",
     name: "Whole Wheat Bread",
-    diningHall: "Unknown",
+    diningHall: "Hillenbrand",
     mealPeriod: "all_day",
     category: "carb",
     calories: 120,
@@ -131,7 +131,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "roasted-potatoes",
     name: "Roasted Potatoes",
-    diningHall: "Unknown",
+    diningHall: "Ford",
     mealPeriod: "dinner",
     category: "carb",
     calories: 180,
@@ -146,7 +146,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "steamed-broccoli",
     name: "Steamed Broccoli",
-    diningHall: "Unknown",
+    diningHall: "Wiley",
     mealPeriod: "lunch",
     category: "vegetable",
     calories: 55,
@@ -160,7 +160,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "green-beans",
     name: "Green Beans",
-    diningHall: "Unknown",
+    diningHall: "Ford",
     mealPeriod: "dinner",
     category: "vegetable",
     calories: 45,
@@ -174,7 +174,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "side-salad",
     name: "Side Salad",
-    diningHall: "Unknown",
+    diningHall: "Hillenbrand",
     mealPeriod: "all_day",
     category: "vegetable",
     calories: 40,
@@ -188,7 +188,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "mixed-vegetables",
     name: "Mixed Vegetables",
-    diningHall: "Unknown",
+    diningHall: "Windsor",
     mealPeriod: "dinner",
     category: "vegetable",
     calories: 70,
@@ -202,7 +202,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "black-beans",
     name: "Black Beans",
-    diningHall: "Unknown",
+    diningHall: "Earhart",
     mealPeriod: "lunch",
     category: "side",
     calories: 170,
@@ -217,7 +217,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "banana",
     name: "Banana",
-    diningHall: "Unknown",
+    diningHall: "Hillenbrand",
     mealPeriod: "all_day",
     category: "fruit",
     calories: 105,
@@ -231,7 +231,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "apple",
     name: "Apple",
-    diningHall: "Unknown",
+    diningHall: "Ford",
     mealPeriod: "all_day",
     category: "fruit",
     calories: 95,
@@ -245,7 +245,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "chocolate-milk",
     name: "Chocolate Milk",
-    diningHall: "Unknown",
+    diningHall: "Earhart",
     mealPeriod: "all_day",
     category: "drink",
     calories: 190,
@@ -259,7 +259,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "cookie",
     name: "Cookie",
-    diningHall: "Unknown",
+    diningHall: "Windsor",
     mealPeriod: "all_day",
     category: "dessert",
     calories: 210,
@@ -273,7 +273,7 @@ export const sampleMenuItems: MenuItem[] = [
   {
     id: "baked-salmon",
     name: "Baked Salmon",
-    diningHall: "Unknown",
+    diningHall: "Wiley",
     mealPeriod: "dinner",
     category: "protein",
     calories: 240,

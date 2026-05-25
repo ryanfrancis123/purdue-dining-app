@@ -10,7 +10,12 @@ import {
 
 import { sampleMenuItems } from "../../src/data/sampleMenuItems";
 import { recommendMeals } from "../../src/utils/recommendMeals";
-import { Allergen, MacroTargets, MealPeriod } from "../../src/types/menu";
+import {
+  Allergen,
+  DiningHall,
+  MacroTargets,
+  MealPeriod,
+} from "../../src/types/menu";
 
 export default function HomeScreen() {
   const [caloriesInput, setCaloriesInput] = useState("600");
@@ -21,6 +26,17 @@ export default function HomeScreen() {
   >(undefined);
   const [excludedAllergens, setExcludedAllergens] = useState<Allergen[]>([]);
   const allergenOptions: Allergen[] = ["milk", "egg", "wheat", "soy", "fish"];
+  const [selectedDiningHall, setSelectedDiningHall] = useState<
+    DiningHall | undefined
+  >(undefined);
+
+  const diningHallOptions: DiningHall[] = [
+    "Wiley",
+    "Windsor",
+    "Ford",
+    "Earhart",
+    "Hillenbrand",
+  ];
 
   const [targets, setTargets] = useState<MacroTargets>({
     calories: 600,
@@ -32,7 +48,8 @@ export default function HomeScreen() {
     sampleMenuItems,
     targets,
     selectedMealPeriod,
-    excludedAllergens
+    excludedAllergens,
+    selectedDiningHall
   );
 
   function handleGenerateRecommendations() {
@@ -193,7 +210,56 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
-            <View style={styles.filterSection}>
+      
+      <View style={styles.filterSection}>
+        <Text style={styles.filterTitle}>Dining Hall</Text>
+
+        <View style={styles.filterRow}>
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              selectedDiningHall === undefined && styles.activeFilterButton,
+            ]}
+            onPress={() => setSelectedDiningHall(undefined)}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                selectedDiningHall === undefined &&
+                  styles.activeFilterButtonText,
+              ]}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
+
+          {diningHallOptions.map((diningHall) => {
+            const isSelected = selectedDiningHall === diningHall;
+
+            return (
+              <TouchableOpacity
+                key={diningHall}
+                style={[
+                  styles.filterButton,
+                  isSelected && styles.activeFilterButton,
+                ]}
+                onPress={() => setSelectedDiningHall(diningHall)}
+              >
+                <Text
+                  style={[
+                    styles.filterButtonText,
+                    isSelected && styles.activeFilterButtonText,
+                  ]}
+                >
+                  {diningHall}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={styles.filterSection}>
         <Text style={styles.filterTitle}>Exclude Allergens</Text>
 
         <View style={styles.filterRow}>
