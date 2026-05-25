@@ -1,5 +1,6 @@
 import {
   MacroTargets,
+  MealPeriod,
   MealRecommendation,
   MenuItem,
 } from "../types/menu";
@@ -75,11 +76,20 @@ function buildExplanation(
 
 export function recommendMeals(
   items: MenuItem[],
-  targets: MacroTargets
+  targets: MacroTargets,
+  selectedMealPeriod?: MealPeriod
 ): MealRecommendation[] {
-  const proteins = items.filter((item) => item.category === "protein");
-  const carbs = items.filter((item) => item.category === "carb");
-  const sides = items.filter(
+  const filteredItems = selectedMealPeriod
+    ? items.filter(
+        (item) =>
+          item.mealPeriod === selectedMealPeriod ||
+          item.mealPeriod === "all_day"
+      )
+    : items;
+
+  const proteins = filteredItems.filter((item) => item.category === "protein");
+  const carbs = filteredItems.filter((item) => item.category === "carb");
+  const sides = filteredItems.filter(
     (item) =>
       item.category === "vegetable" ||
       item.category === "side" ||

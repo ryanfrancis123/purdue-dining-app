@@ -10,12 +10,15 @@ import {
 
 import { sampleMenuItems } from "../../src/data/sampleMenuItems";
 import { recommendMeals } from "../../src/utils/recommendMeals";
-import { MacroTargets } from "../../src/types/menu";
+import { MacroTargets, MealPeriod } from "../../src/types/menu";
 
 export default function HomeScreen() {
   const [caloriesInput, setCaloriesInput] = useState("600");
   const [proteinInput, setProteinInput] = useState("40");
   const [carbsInput, setCarbsInput] = useState("60");
+  const [selectedMealPeriod, setSelectedMealPeriod] = useState<
+    MealPeriod | undefined
+  >(undefined);
 
   const [targets, setTargets] = useState<MacroTargets>({
     calories: 600,
@@ -23,7 +26,11 @@ export default function HomeScreen() {
     carbs: 60,
   });
 
-  const recommendations = recommendMeals(sampleMenuItems, targets);
+  const recommendations = recommendMeals(
+    sampleMenuItems,
+    targets,
+    selectedMealPeriod
+  );
 
   function handleGenerateRecommendations() {
     const calories = Number(caloriesInput);
@@ -96,6 +103,83 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.filterSection}>
+        <Text style={styles.filterTitle}>Meal Period</Text>
+
+        <View style={styles.filterRow}>
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              selectedMealPeriod === undefined && styles.activeFilterButton,
+            ]}
+            onPress={() => setSelectedMealPeriod(undefined)}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                selectedMealPeriod === undefined &&
+                  styles.activeFilterButtonText,
+              ]}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              selectedMealPeriod === "breakfast" && styles.activeFilterButton,
+            ]}
+            onPress={() => setSelectedMealPeriod("breakfast")}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                selectedMealPeriod === "breakfast" &&
+                  styles.activeFilterButtonText,
+              ]}
+            >
+              Breakfast
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              selectedMealPeriod === "lunch" && styles.activeFilterButton,
+            ]}
+            onPress={() => setSelectedMealPeriod("lunch")}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                selectedMealPeriod === "lunch" &&
+                  styles.activeFilterButtonText,
+              ]}
+            >
+              Lunch
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              selectedMealPeriod === "dinner" && styles.activeFilterButton,
+            ]}
+            onPress={() => setSelectedMealPeriod("dinner")}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                selectedMealPeriod === "dinner" &&
+                  styles.activeFilterButtonText,
+              ]}
+            >
+              Dinner
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       <View style={styles.resultsHeader}>
         <Text style={styles.sectionTitle}>Top Meal Options</Text>
         <Text style={styles.targetText}>
@@ -237,5 +321,42 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: "#555",
     marginTop: 10,
+  },
+  filterSection: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 14,
+    marginBottom: 24,
+  },
+  filterTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111",
+    marginBottom: 10,
+  },
+  filterRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  filterButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+  },
+  activeFilterButton: {
+    backgroundColor: "#111",
+    borderColor: "#111",
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+  },
+  activeFilterButtonText: {
+    color: "#fff",
   },
 });
