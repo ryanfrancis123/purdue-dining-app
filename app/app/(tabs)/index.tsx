@@ -10,7 +10,7 @@ import {
 
 import { sampleMenuItems } from "../../src/data/sampleMenuItems";
 import { recommendMeals } from "../../src/utils/recommendMeals";
-import { MacroTargets, MealPeriod } from "../../src/types/menu";
+import { Allergen, MacroTargets, MealPeriod } from "../../src/types/menu";
 
 export default function HomeScreen() {
   const [caloriesInput, setCaloriesInput] = useState("600");
@@ -19,6 +19,8 @@ export default function HomeScreen() {
   const [selectedMealPeriod, setSelectedMealPeriod] = useState<
     MealPeriod | undefined
   >(undefined);
+  const [excludedAllergens, setExcludedAllergens] = useState<Allergen[]>([]);
+  const allergenOptions: Allergen[] = ["milk", "egg", "wheat", "soy", "fish"];
 
   const [targets, setTargets] = useState<MacroTargets>({
     calories: 600,
@@ -29,7 +31,8 @@ export default function HomeScreen() {
   const recommendations = recommendMeals(
     sampleMenuItems,
     targets,
-    selectedMealPeriod
+    selectedMealPeriod,
+    excludedAllergens
   );
 
   function handleGenerateRecommendations() {
@@ -50,6 +53,16 @@ export default function HomeScreen() {
       protein,
       carbs,
     });
+  }
+
+  function toggleAllergen(allergen: Allergen) {
+    if (excludedAllergens.includes(allergen)) {
+      setExcludedAllergens(
+        excludedAllergens.filter((item) => item !== allergen)
+      );
+    } else {
+      setExcludedAllergens([...excludedAllergens, allergen]);
+    }
   }
 
   return (
@@ -180,6 +193,36 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+            <View style={styles.filterSection}>
+        <Text style={styles.filterTitle}>Exclude Allergens</Text>
+
+        <View style={styles.filterRow}>
+          {allergenOptions.map((allergen) => {
+            const isSelected = excludedAllergens.includes(allergen);
+
+            return (
+              <TouchableOpacity
+                key={allergen}
+                style={[
+                  styles.filterButton,
+                  isSelected && styles.activeFilterButton,
+                ]}
+                onPress={() => toggleAllergen(allergen)}
+              >
+                <Text
+                  style={[
+                    styles.filterButtonText,
+                    isSelected && styles.activeFilterButtonText,
+                  ]}
+                >
+                  {allergen}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
       <View style={styles.resultsHeader}>
         <Text style={styles.sectionTitle}>Top Meal Options</Text>
         <Text style={styles.targetText}>

@@ -9,6 +9,17 @@ export type MenuCategory =
   | "sauce"
   | "other";
 
+export type Allergen =
+  | "milk"
+  | "egg"
+  | "wheat"
+  | "soy"
+  | "fish"
+  | "peanut"
+  | "tree_nut"
+  | "shellfish"
+  | "sesame";
+
 export type DiningHall =
   | "Wiley"
   | "Windsor"
@@ -36,7 +47,7 @@ export interface MenuItem {
   carbs: number;
   fat: number;
 
-  allergens: string[];
+  allergens: Allergen[];
   dietaryTags: string[];
 
   servingSize?: string;
