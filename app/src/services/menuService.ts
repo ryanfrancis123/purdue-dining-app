@@ -24,14 +24,18 @@ function mapSupabaseRowToMenuItem(row: SupabaseMenuItemRow): MenuItem {
   return {
     id: row.id,
     name: row.name,
-    diningHall: row.dining_hall,
-    mealPeriod: row.meal_period,
-    category: row.category,
+
+    diningHall: row.dining_hall as MenuItem["diningHall"],
+    mealPeriod: row.meal_period as MenuItem["mealPeriod"],
+    category: row.category as MenuItem["category"],
+
     calories: row.calories,
     protein: row.protein_g,
     carbs: row.carbs_g,
     fat: row.fat_g,
-    allergens: row.allergens,
+
+    allergens: row.allergens as MenuItem["allergens"],
+    dietaryTags: row.dietary_tags as MenuItem["dietaryTags"],
   };
 }
 
