@@ -6,7 +6,6 @@ export async function getMenuItems(): Promise<MenuItem[]> {
   try {
     const supabaseItems = await fetchMenuItemsFromSupabase();
 
-    console.log("Loaded Supabase menu items:", supabaseItems.length);
 
     if (supabaseItems.length > 0) {
       return supabaseItems;
