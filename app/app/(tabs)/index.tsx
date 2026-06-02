@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -8,13 +8,14 @@ import {
   View,
 } from "react-native";
 
-import { sampleMenuItems } from "../../src/data/sampleMenuItems";
+import { getMenuItems } from "../../src/services/menuRepository";
 import { recommendMeals } from "../../src/utils/recommendMeals";
 import {
+  MenuItem,
+  MealPeriod,
   Allergen,
   DiningHall,
   MacroTargets,
-  MealPeriod,
 } from "../../src/types/menu";
 
 export default function HomeScreen() {
@@ -29,6 +30,29 @@ export default function HomeScreen() {
   const [selectedDiningHall, setSelectedDiningHall] = useState<
     DiningHall | undefined
   >(undefined);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [isLoadingMenuItems, setIsLoadingMenuItems] = useState(true);
+  const [menuItemsError, setMenuItemsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadMenuItems() {
+      try {
+        setIsLoadingMenuItems(true);
+        setMenuItemsError(null);
+
+        const items = await getMenuItems();
+        setMenuItems(items);
+      } catch (error) {
+        console.error(error);
+        setMenuItemsError("Could not load menu items.");
+      } finally {
+        setIsLoadingMenuItems(false);
+      }
+    }
+
+    loadMenuItems();
+  }, []);
+
 
   const diningHallOptions: DiningHall[] = [
     "Wiley",
@@ -45,7 +69,7 @@ export default function HomeScreen() {
   });
 
   const recommendations = recommendMeals(
-    sampleMenuItems,
+    menuItems,
     targets,
     selectedMealPeriod,
     excludedAllergens,
@@ -131,7 +155,16 @@ export default function HomeScreen() {
         >
           <Text style={styles.buttonText}>Generate Meal Recommendations</Text>
         </TouchableOpacity>
-      </View>
+        </View>
+
+        {isLoadingMenuItems && (
+          <Text>Loading menu items...</Text>
+        )}
+
+        {menuItemsError && (
+          <Text>{menuItemsError}</Text>
+        )}
+      
 
       <View style={styles.filterSection}>
         <Text style={styles.filterTitle}>Meal Period</Text>
