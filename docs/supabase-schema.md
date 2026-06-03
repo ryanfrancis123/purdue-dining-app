@@ -40,3 +40,39 @@ The app will eventually support:
 - local sample data fallback
 - Supabase menu item fetching
 - mapping database rows into the existing MenuItem type
+
+## Database Constraints
+
+The `menu_items` table includes database-level constraints to prevent invalid menu data from being inserted.
+
+### Meal Period Constraint
+
+Allowed values:
+
+- `breakfast`
+- `lunch`
+- `dinner`
+
+### Category Constraint
+
+Allowed values:
+
+- `protein`
+- `carb`
+- `side`
+- `vegetable`
+- `dessert`
+- `drink`
+
+### Dining Hall Constraint
+
+Allowed values:
+
+- `Wiley`
+- `Ford`
+- `Earhart`
+- `Windsor`
+- `Hillenbrand`
+- `The Gathering Place`
+
+These constraints protect the app from invalid Supabase data such as misspelled meal periods, unsupported categories, or fake dining halls.
