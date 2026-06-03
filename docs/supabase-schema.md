@@ -76,3 +76,9 @@ Allowed values:
 - `The Gathering Place`
 
 These constraints protect the app from invalid Supabase data such as misspelled meal periods, unsupported categories, or fake dining halls.
+
+## Automatic Updated Timestamp
+
+The `menu_items` table uses a database trigger to automatically update the `updated_at` column whenever an existing row is edited.
+
+This prevents the app or admin tools from needing to manually set `updated_at` during updates.
