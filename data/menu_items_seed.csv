@@ -1,0 +1,10 @@
+name,dining_hall,meal_period,category,calories,protein_g,carbs_g,fat_g,allergens,dietary_tags,serving_size,source,is_active
+Grilled Chicken Breast,Wiley,lunch,protein,180,32,0,4,{},{"high_protein"},1 serving,csv_seed,true
+Brown Rice,Wiley,lunch,carb,210,5,44,2,{},{"vegetarian"},1 cup,csv_seed,true
+Steamed Broccoli,Wiley,lunch,side,55,4,11,1,{},"{""vegetarian"",""vegan""}",1 cup,csv_seed,true
+Scrambled Eggs,Earhart,breakfast,protein,160,12,2,11,"{""egg"",""milk""}",{"vegetarian"},1 serving,csv_seed,true
+Oatmeal,Earhart,breakfast,carb,150,5,27,3,{},"{""vegetarian"",""vegan""}",1 bowl,csv_seed,true
+Hash Browns,Earhart,breakfast,side,180,2,24,9,{},{"vegetarian"},1 serving,csv_seed,true
+Turkey Burger,Ford,dinner,protein,260,28,24,9,{"wheat"},{"high_protein"},1 sandwich,csv_seed,true
+Roasted Potatoes,Ford,dinner,carb,190,4,35,5,{},"{""vegetarian"",""vegan""}",1 serving,csv_seed,true
+Green Beans,Ford,dinner,side,45,2,8,1,{},"{""vegetarian"",""vegan""}",1 serving,csv_seed,true
