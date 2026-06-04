@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MenuItem } from "../types/menu";
 
 type MenuItemCardProps = {
   item: MenuItem;
   variant?: "compact" | "full";
+  onPress?: () => void;
 };
 
 function formatLabel(value: string) {
@@ -13,7 +14,11 @@ function formatLabel(value: string) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-export function MenuItemCard({ item, variant = "full" }: MenuItemCardProps) {
+export function MenuItemCard({
+  item,
+  variant = "full",
+  onPress,
+}: MenuItemCardProps) {
   const hasAllergens = item.allergens.length > 0;
   const hasDietaryTags = item.dietaryTags.length > 0;
 
@@ -23,7 +28,14 @@ export function MenuItemCard({ item, variant = "full" }: MenuItemCardProps) {
   
   if (variant === "compact") {
     return (
-        <View style={styles.compactCard}>
+      <Pressable
+        style={({ pressed }) => [
+            styles.compactCard,
+            pressed && styles.compactCardPressed,
+        ]}
+        onPress={onPress}
+        disabled={!onPress}
+      >
             <View style={styles.compactHeaderRow}>
                 <Text style={styles.compactName}>{item.name}</Text>
                 <Text style={styles.compactCalories}>{item.calories} kcal</Text>
@@ -42,9 +54,9 @@ export function MenuItemCard({ item, variant = "full" }: MenuItemCardProps) {
                     Allergens: {formattedAllergens.join(", ")}
                 </Text>
             ) : null}
-        </View>
-    );
-  }
+        </Pressable>
+  );
+}
 
   return (
     <View style={styles.card}>
@@ -202,5 +214,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 12,
     color: "#dc2626",
+  },
+  compactCardPressed: {
+  opacity: 0.65,
   },
 });

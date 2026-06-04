@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { router } from "expo-router";
 import {
   ScrollView,
   StyleSheet,
@@ -356,7 +357,17 @@ export default function HomeScreen() {
 
             <View style={styles.itemList}>
               {meal.items.map((item) => (
-                <MenuItemCard key={item.id} item={item} variant="compact" />
+                <MenuItemCard
+                  key={item.id}
+                  item={item}
+                  variant="compact"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/menu/[id]",
+                      params: { id: item.id },
+                    })
+                  }
+                />
               ))}
             </View>
 
