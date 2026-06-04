@@ -34,6 +34,9 @@ export default function HomeScreen() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoadingMenuItems, setIsLoadingMenuItems] = useState(true);
   const [menuItemsError, setMenuItemsError] = useState<string | null>(null);
+  const [menuDataSource, setMenuDataSource] = useState<"supabase" | "fallback" | null>(
+    null
+  );
 
   useEffect(() => {
     async function loadMenuItems() {
@@ -41,8 +44,10 @@ export default function HomeScreen() {
         setIsLoadingMenuItems(true);
         setMenuItemsError(null);
 
-        const items = await getMenuItems();
-        setMenuItems(items);
+        const result = await getMenuItems();
+
+        setMenuItems(result.items);
+        setMenuDataSource(result.source);
       } catch (error) {
         console.error(error);
         setMenuItemsError("Could not load menu items.");
@@ -329,6 +334,11 @@ export default function HomeScreen() {
           Target: {targets.calories} cal, {targets.protein}g protein,{" "}
           {targets.carbs}g carbs
         </Text>
+        {menuDataSource === "fallback" ? (
+          <Text style={styles.fallbackNotice}>
+            Showing offline sample menu because live menu data is unavailable.
+          </Text>
+        ) : null}
       </View>
 
       {recommendations.length === 0 ? (
@@ -526,5 +536,15 @@ emptyStateText: {
   fontSize: 14,
   lineHeight: 20,
   color: "#555",
+},
+fallbackNotice: {
+  marginTop: 8,
+  marginBottom: 12,
+  padding: 10,
+  borderRadius: 10,
+  backgroundColor: "#fef3c7",
+  color: "#92400e",
+  fontSize: 14,
+  fontWeight: "600",
 },
 });
