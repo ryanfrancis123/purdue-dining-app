@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 
+import { MenuItemCard } from "../../src/components/MenuItemCard";
 import { getMenuItems } from "../../src/services/menuRepository";
 import { recommendMeals } from "../../src/utils/recommendMeals";
 import {
@@ -345,9 +346,7 @@ export default function HomeScreen() {
 
             <View style={styles.itemList}>
               {meal.items.map((item) => (
-                <Text key={item.id} style={styles.itemText}>
-                  • {item.name}
-                </Text>
+                <MenuItemCard key={item.id} item={item} variant="compact" />
               ))}
             </View>
 

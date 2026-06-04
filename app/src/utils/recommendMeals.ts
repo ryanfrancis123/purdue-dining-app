@@ -76,6 +76,22 @@ function buildExplanation(
   return `This meal ${calorieText}, ${proteinText}, and ${carbText}.`;
 }
 
+function mealPeriodsAreCompatible(items: MenuItem[]) {
+  const specificMealPeriods = items
+    .map((item) => item.mealPeriod)
+    .filter((mealPeriod) => mealPeriod !== "all_day");
+
+  if (specificMealPeriods.length === 0) {
+    return true;
+  }
+
+  const firstMealPeriod = specificMealPeriods[0];
+
+  return specificMealPeriods.every(
+    (mealPeriod) => mealPeriod === firstMealPeriod
+  );
+}
+
 export function recommendMeals(
   items: MenuItem[],
   targets: MacroTargets,
@@ -115,6 +131,11 @@ export function recommendMeals(
     for (const carb of carbs) {
       for (const side of sides) {
         const mealItems = [protein, carb, side];
+
+        if (!mealPeriodsAreCompatible(mealItems)) {
+          continue;
+        }
+
         const totals = getMealTotals(mealItems);
         const score = calculateScore(totals, targets);
 
