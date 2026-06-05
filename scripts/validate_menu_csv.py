@@ -71,13 +71,49 @@ def parse_number(value: str, column_name: str, row_number: int) -> float | None:
     return number
 
 
-def parse_list_field(value: str) -> list[str]:
+def parse_postgres_array_field(value: str, column_name: str, row_number: int) -> list[str] | None:
     value = value.strip()
 
     if value == "":
+        print(f"Row {row_number}: {column_name} is empty. Use {{}} for an empty array.")
+        return None
+
+    if value == "{}":
         return []
 
-    return [item.strip().lower() for item in value.split("|") if item.strip()]
+    if not value.startswith("{") or not value.endswith("}"):
+        print(
+            f"Row {row_number}: {column_name} must use PostgreSQL array format. "
+            f"Example: {{\"vegetarian\",\"vegan\"}} or {{}}"
+        )
+        return None
+
+    inner_value = value[1:-1].strip()
+
+    if inner_value == "":
+        return []
+
+    items = []
+
+    for raw_item in inner_value.split(","):
+        item = raw_item.strip()
+
+        if not item.startswith('"') or not item.endswith('"'):
+            print(
+                f"Row {row_number}: each value in {column_name} must be wrapped in quotes. "
+                f"Found: {item}"
+            )
+            return None
+
+        cleaned_item = item[1:-1].strip().lower()
+
+        if cleaned_item == "":
+            print(f"Row {row_number}: {column_name} contains an empty value.")
+            return None
+
+        items.append(cleaned_item)
+
+    return items
 
 
 def validate_csv() -> bool:
@@ -152,16 +188,22 @@ def validate_csv() -> bool:
                 if number is None:
                     has_errors = True
 
-            allergens = parse_list_field(row["allergens"])
-            dietary_tags = parse_list_field(row["dietary_tags"])
+            allergens = parse_postgres_array_field(row["allergens"], "allergens", row_number)
+            dietary_tags = parse_postgres_array_field(row["dietary_tags"], "dietary_tags", row_number)
 
-            if len(allergens) != len(set(allergens)):
-                print(f"Row {row_number}: duplicate allergen found in allergens field.")
+            if allergens is None:
                 has_errors = True
+            else:
+                if len(allergens) != len(set(allergens)):
+                    print(f"Row {row_number}: duplicate allergen found in allergens field.")
+                    has_errors = True
 
-            if len(dietary_tags) != len(set(dietary_tags)):
-                print(f"Row {row_number}: duplicate dietary tag found in dietary_tags field.")
+            if dietary_tags is None:
                 has_errors = True
+            else:
+                if len(dietary_tags) != len(set(dietary_tags)):
+                    print(f"Row {row_number}: duplicate dietary tag found in dietary_tags field.")
+                    has_errors = True
 
     if has_errors:
         print("\nCSV validation failed.")
