@@ -42,7 +42,12 @@ export default function MenuItemDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: item?.name ?? "Menu Item" }} />
+      <Stack.Screen
+        options={{
+            title: item?.name ?? "Menu Item",
+            headerBackTitle: "Back",
+        }}
+      />
 
       <ScrollView contentContainerStyle={styles.container}>
         {isLoading ? (

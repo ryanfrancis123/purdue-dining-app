@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { router } from "expo-router";
 import {
+  Animated,
+  Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +12,8 @@ import {
   View,
 } from "react-native";
 
+import type { MealRecommendation } from "../../src/types/menu";
+import { MealRecommendationCard } from "../../src/components/MealRecommendationCard";
 import { MenuItemCard } from "../../src/components/MenuItemCard";
 import { getMenuItems } from "../../src/services/menuRepository";
 import { recommendMeals } from "../../src/utils/recommendMeals";
@@ -38,6 +43,10 @@ export default function HomeScreen() {
   const [menuDataSource, setMenuDataSource] = useState<"supabase" | "fallback" | null>(
     null
   );
+  const [selectedMeal, setSelectedMeal] = useState<MealRecommendation | null>(
+    null
+  );
+  const sheetSlideAnim = useRef(new Animated.Value(400)).current;
 
   useEffect(() => {
     async function loadMenuItems() {
@@ -59,6 +68,18 @@ export default function HomeScreen() {
 
     loadMenuItems();
   }, []);
+
+  useEffect(() => {
+    if (selectedMeal) {
+      sheetSlideAnim.setValue(400);
+
+      Animated.timing(sheetSlideAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [selectedMeal, sheetSlideAnim]);
 
 
   const diningHallOptions: DiningHall[] = [
@@ -114,278 +135,326 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Purdue Dining Macro Planner</Text>
+    <>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Text style={styles.title}>Purdue Dining Macro Planner</Text>
 
-      <Text style={styles.subtitle}>
-        Enter your macro targets and get realistic meal combinations from sample
-        dining hall data.
-      </Text>
-
-      <View style={styles.inputSection}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Calories</Text>
-          <TextInput
-            style={styles.input}
-            value={caloriesInput}
-            onChangeText={setCaloriesInput}
-            keyboardType="numeric"
-            placeholder="600"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Protein (g)</Text>
-          <TextInput
-            style={styles.input}
-            value={proteinInput}
-            onChangeText={setProteinInput}
-            keyboardType="numeric"
-            placeholder="40"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Carbs (g)</Text>
-          <TextInput
-            style={styles.input}
-            value={carbsInput}
-            onChangeText={setCarbsInput}
-            keyboardType="numeric"
-            placeholder="60"
-          />
-        </View>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleGenerateRecommendations}
-        >
-          <Text style={styles.buttonText}>Generate Meal Recommendations</Text>
-        </TouchableOpacity>
-        </View>
-
-        {isLoadingMenuItems && (
-          <Text>Loading menu items...</Text>
-        )}
-
-        {menuItemsError && (
-          <Text>{menuItemsError}</Text>
-        )}
-      
-
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Meal Period</Text>
-
-        <View style={styles.filterRow}>
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              selectedMealPeriod === undefined && styles.activeFilterButton,
-            ]}
-            onPress={() => setSelectedMealPeriod(undefined)}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                selectedMealPeriod === undefined &&
-                  styles.activeFilterButtonText,
-              ]}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              selectedMealPeriod === "breakfast" && styles.activeFilterButton,
-            ]}
-            onPress={() => setSelectedMealPeriod("breakfast")}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                selectedMealPeriod === "breakfast" &&
-                  styles.activeFilterButtonText,
-              ]}
-            >
-              Breakfast
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              selectedMealPeriod === "lunch" && styles.activeFilterButton,
-            ]}
-            onPress={() => setSelectedMealPeriod("lunch")}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                selectedMealPeriod === "lunch" &&
-                  styles.activeFilterButtonText,
-              ]}
-            >
-              Lunch
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              selectedMealPeriod === "dinner" && styles.activeFilterButton,
-            ]}
-            onPress={() => setSelectedMealPeriod("dinner")}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                selectedMealPeriod === "dinner" &&
-                  styles.activeFilterButtonText,
-              ]}
-            >
-              Dinner
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Dining Hall</Text>
-
-        <View style={styles.filterRow}>
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              selectedDiningHall === undefined && styles.activeFilterButton,
-            ]}
-            onPress={() => setSelectedDiningHall(undefined)}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                selectedDiningHall === undefined &&
-                  styles.activeFilterButtonText,
-              ]}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-
-          {diningHallOptions.map((diningHall) => {
-            const isSelected = selectedDiningHall === diningHall;
-
-            return (
-              <TouchableOpacity
-                key={diningHall}
-                style={[
-                  styles.filterButton,
-                  isSelected && styles.activeFilterButton,
-                ]}
-                onPress={() => setSelectedDiningHall(diningHall)}
-              >
-                <Text
-                  style={[
-                    styles.filterButtonText,
-                    isSelected && styles.activeFilterButtonText,
-                  ]}
-                >
-                  {diningHall}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Exclude Allergens</Text>
-
-        <View style={styles.filterRow}>
-          {allergenOptions.map((allergen) => {
-            const isSelected = excludedAllergens.includes(allergen);
-
-            return (
-              <TouchableOpacity
-                key={allergen}
-                style={[
-                  styles.filterButton,
-                  isSelected && styles.activeFilterButton,
-                ]}
-                onPress={() => toggleAllergen(allergen)}
-              >
-                <Text
-                  style={[
-                    styles.filterButtonText,
-                    isSelected && styles.activeFilterButtonText,
-                  ]}
-                >
-                  {allergen}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      <View style={styles.resultsHeader}>
-        <Text style={styles.sectionTitle}>Top Meal Options</Text>
-        <Text style={styles.targetText}>
-          Target: {targets.calories} cal, {targets.protein}g protein,{" "}
-          {targets.carbs}g carbs
+        <Text style={styles.subtitle}>
+          Enter your macro targets and get realistic meal combinations from sample
+          dining hall data.
         </Text>
-        {menuDataSource === "fallback" ? (
-          <Text style={styles.fallbackNotice}>
-            Showing offline sample menu because live menu data is unavailable.
-          </Text>
-        ) : null}
-      </View>
 
-      {recommendations.length === 0 ? (
-        <View style={styles.emptyStateCard}>
-          <Text style={styles.emptyStateTitle}>No meal recommendations found</Text>
-          <Text style={styles.emptyStateText}>
-            Try changing your meal period, lowering your macro targets, or removing
-            one of the allergen filters.
-          </Text>
-        </View>
-      ) : (
-        recommendations.map((meal, index) => (
-          <View key={meal.id} style={styles.card}>
-            <Text style={styles.cardTitle}>Meal Option {index + 1}</Text>
-
-            <View style={styles.itemList}>
-              {meal.items.map((item) => (
-                <MenuItemCard
-                  key={item.id}
-                  item={item}
-                  variant="compact"
-                  onPress={() =>
-                    router.push({
-                      pathname: "/menu/[id]",
-                      params: { id: item.id },
-                    })
-                  }
-                />
-              ))}
-            </View>
-
-            <View style={styles.macroRow}>
-              <Text style={styles.macroText}>{meal.totalCalories} cal</Text>
-              <Text style={styles.macroText}>{meal.totalProtein}g protein</Text>
-            </View>
-
-            <View style={styles.macroRow}>
-              <Text style={styles.macroText}>{meal.totalCarbs}g carbs</Text>
-              <Text style={styles.macroText}>{meal.totalFat}g fat</Text>
-            </View>
-
-            <Text style={styles.explanation}>{meal.explanation}</Text>
+        <View style={styles.inputSection}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Calories</Text>
+            <TextInput
+              style={styles.input}
+              value={caloriesInput}
+              onChangeText={setCaloriesInput}
+              keyboardType="numeric"
+              placeholder="600"
+            />
           </View>
-        ))
-      )}
-    </ScrollView>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Protein (g)</Text>
+            <TextInput
+              style={styles.input}
+              value={proteinInput}
+              onChangeText={setProteinInput}
+              keyboardType="numeric"
+              placeholder="40"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Carbs (g)</Text>
+            <TextInput
+              style={styles.input}
+              value={carbsInput}
+              onChangeText={setCarbsInput}
+              keyboardType="numeric"
+              placeholder="60"
+            />
+          </View>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleGenerateRecommendations}
+          >
+            <Text style={styles.buttonText}>Generate Meal Recommendations</Text>
+          </TouchableOpacity>
+          </View>
+
+          {isLoadingMenuItems && (
+            <Text>Loading menu items...</Text>
+          )}
+
+          {menuItemsError && (
+            <Text>{menuItemsError}</Text>
+          )}
+        
+
+        <View style={styles.filterSection}>
+          <Text style={styles.filterTitle}>Meal Period</Text>
+
+          <View style={styles.filterRow}>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedMealPeriod === undefined && styles.activeFilterButton,
+              ]}
+              onPress={() => setSelectedMealPeriod(undefined)}
+            >
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  selectedMealPeriod === undefined &&
+                    styles.activeFilterButtonText,
+                ]}
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedMealPeriod === "breakfast" && styles.activeFilterButton,
+              ]}
+              onPress={() => setSelectedMealPeriod("breakfast")}
+            >
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  selectedMealPeriod === "breakfast" &&
+                    styles.activeFilterButtonText,
+                ]}
+              >
+                Breakfast
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedMealPeriod === "lunch" && styles.activeFilterButton,
+              ]}
+              onPress={() => setSelectedMealPeriod("lunch")}
+            >
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  selectedMealPeriod === "lunch" &&
+                    styles.activeFilterButtonText,
+                ]}
+              >
+                Lunch
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedMealPeriod === "dinner" && styles.activeFilterButton,
+              ]}
+              onPress={() => setSelectedMealPeriod("dinner")}
+            >
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  selectedMealPeriod === "dinner" &&
+                    styles.activeFilterButtonText,
+                ]}
+              >
+                Dinner
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        <View style={styles.filterSection}>
+          <Text style={styles.filterTitle}>Dining Hall</Text>
+
+          <View style={styles.filterRow}>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                selectedDiningHall === undefined && styles.activeFilterButton,
+              ]}
+              onPress={() => setSelectedDiningHall(undefined)}
+            >
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  selectedDiningHall === undefined &&
+                    styles.activeFilterButtonText,
+                ]}
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+
+            {diningHallOptions.map((diningHall) => {
+              const isSelected = selectedDiningHall === diningHall;
+
+              return (
+                <TouchableOpacity
+                  key={diningHall}
+                  style={[
+                    styles.filterButton,
+                    isSelected && styles.activeFilterButton,
+                  ]}
+                  onPress={() => setSelectedDiningHall(diningHall)}
+                >
+                  <Text
+                    style={[
+                      styles.filterButtonText,
+                      isSelected && styles.activeFilterButtonText,
+                    ]}
+                  >
+                    {diningHall}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.filterSection}>
+          <Text style={styles.filterTitle}>Exclude Allergens</Text>
+
+          <View style={styles.filterRow}>
+            {allergenOptions.map((allergen) => {
+              const isSelected = excludedAllergens.includes(allergen);
+
+              return (
+                <TouchableOpacity
+                  key={allergen}
+                  style={[
+                    styles.filterButton,
+                    isSelected && styles.activeFilterButton,
+                  ]}
+                  onPress={() => toggleAllergen(allergen)}
+                >
+                  <Text
+                    style={[
+                      styles.filterButtonText,
+                      isSelected && styles.activeFilterButtonText,
+                    ]}
+                  >
+                    {allergen}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.resultsHeader}>
+          <Text style={styles.sectionTitle}>Top Meal Options</Text>
+          <Text style={styles.targetText}>
+            Target: {targets.calories} cal, {targets.protein}g protein,{" "}
+            {targets.carbs}g carbs
+          </Text>
+          {menuDataSource === "fallback" ? (
+            <Text style={styles.fallbackNotice}>
+              Showing offline sample menu because live menu data is unavailable.
+            </Text>
+          ) : null}
+        </View>
+
+        {recommendations.length === 0 ? (
+          <View style={styles.emptyStateCard}>
+            <Text style={styles.emptyStateTitle}>No meal recommendations found</Text>
+            <Text style={styles.emptyStateText}>
+              Try changing your meal period, lowering your macro targets, or removing
+              one of the allergen filters.
+            </Text>
+          </View>
+        ) : (
+          recommendations.map((meal, index) => (
+            <MealRecommendationCard
+              key={meal.id}
+              meal={meal}
+              index={index}
+              onPress={() => setSelectedMeal(meal)}
+            />
+          ))
+        )}
+      </ScrollView>
+
+      <Modal
+        visible={selectedMeal !== null}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setSelectedMeal(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={() => setSelectedMeal(null)}
+          />
+
+          <Animated.View
+            style={[
+              styles.bottomSheet,
+              {
+                transform: [{ translateY: sheetSlideAnim }],
+              },
+            ]}
+          >
+            {selectedMeal ? (
+              <>
+                <View style={styles.sheetHeader}>
+                  <View>
+                    <Text style={styles.sheetTitle}>Meal Details</Text>
+                    <Text style={styles.sheetSubtitle}>
+                      {selectedMeal.totalCalories} cal ·{" "}
+                      {selectedMeal.totalProtein}g protein ·{" "}
+                      {selectedMeal.totalCarbs}g carbs
+                    </Text>
+                  </View>
+
+                  <Pressable
+                    style={styles.closeButton}
+                    onPress={() => setSelectedMeal(null)}
+                  >
+                    <Text style={styles.closeButtonText}>×</Text>
+                  </Pressable>
+                </View>
+
+                <View style={styles.sheetSection}>
+                  <Text style={styles.sheetSectionLabel}>Items</Text>
+
+                  {selectedMeal.items.map((item) => (
+                    <View key={item.id} style={styles.sheetItemRow}>
+                      <View style={styles.sheetItemTextGroup}>
+                        <Text style={styles.sheetItemName}>{item.name}</Text>
+                        <Text style={styles.sheetItemMeta}>
+                          {item.diningHall} · {item.mealPeriod} · {item.category}
+                        </Text>
+                      </View>
+
+                      <Text style={styles.sheetItemCalories}>
+                        {item.calories} cal
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+
+                <View style={styles.sheetSection}>
+                  <Text style={styles.sheetSectionLabel}>Match summary</Text>
+                  <Text style={styles.sheetExplanation}>
+                    {selectedMeal.explanation}
+                  </Text>
+                </View>
+              </>
+            ) : null}
+          </Animated.View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -557,5 +626,114 @@ fallbackNotice: {
   color: "#92400e",
   fontSize: 14,
   fontWeight: "600",
+},
+mealSummaryBox: {
+  marginTop: 14,
+  paddingTop: 12,
+  borderTopWidth: 1,
+  borderTopColor: "#e5e7eb",
+},
+mealSummaryLabel: {
+  marginTop: 4,
+  fontSize: 12,
+  fontWeight: "700",
+  color: "#6b7280",
+  textTransform: "uppercase",
+  letterSpacing: 0.5,
+},
+mealSummaryText: {
+  marginTop: 4,
+  marginBottom: 10,
+  fontSize: 15,
+  fontWeight: "700",
+  color: "#111827",
+},
+modalOverlay: {
+  flex: 1,
+  justifyContent: "flex-end",
+},
+modalBackdrop: {
+  ...StyleSheet.absoluteFillObject,
+  backgroundColor: "rgba(0, 0, 0, 0.35)",
+},
+bottomSheet: {
+  backgroundColor: "#ffffff",
+  borderTopLeftRadius: 28,
+  borderTopRightRadius: 28,
+  padding: 22,
+  paddingBottom: 36,
+  maxHeight: "80%",
+},
+sheetHeader: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: 16,
+},
+sheetTitle: {
+  fontSize: 24,
+  fontWeight: "800",
+  color: "#111827",
+},
+sheetSubtitle: {
+  marginTop: 6,
+  fontSize: 14,
+  color: "#6b7280",
+},
+closeButton: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: "#f3f4f6",
+  alignItems: "center",
+  justifyContent: "center",
+},
+closeButtonText: {
+  fontSize: 26,
+  lineHeight: 28,
+  color: "#111827",
+},
+sheetSection: {
+  marginTop: 22,
+},
+sheetSectionLabel: {
+  fontSize: 12,
+  fontWeight: "800",
+  color: "#6b7280",
+  textTransform: "uppercase",
+  letterSpacing: 0.6,
+},
+sheetItemRow: {
+  marginTop: 14,
+  flexDirection: "row",
+  justifyContent: "space-between",
+  gap: 12,
+  paddingBottom: 14,
+  borderBottomWidth: 1,
+  borderBottomColor: "#e5e7eb",
+},
+sheetItemTextGroup: {
+  flex: 1,
+},
+sheetItemName: {
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#111827",
+},
+sheetItemMeta: {
+  marginTop: 3,
+  fontSize: 13,
+  color: "#6b7280",
+},
+sheetItemCalories: {
+  fontSize: 15,
+  fontWeight: "700",
+  color: "#b45309",
+},
+sheetExplanation: {
+  marginTop: 10,
+  fontSize: 16,
+  lineHeight: 23,
+  color: "#4b5563",
 },
 });
