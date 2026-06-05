@@ -25,6 +25,12 @@ import {
   MacroTargets,
 } from "../../src/types/menu";
 
+function formatLabel(value: string) {
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export default function HomeScreen() {
   const [caloriesInput, setCaloriesInput] = useState("600");
   const [proteinInput, setProteinInput] = useState("40");
@@ -412,7 +418,8 @@ export default function HomeScreen() {
                     <Text style={styles.sheetSubtitle}>
                       {selectedMeal.totalCalories} cal ·{" "}
                       {selectedMeal.totalProtein}g protein ·{" "}
-                      {selectedMeal.totalCarbs}g carbs
+                      {selectedMeal.totalCarbs}g carbs ·{" "}
+                      {selectedMeal.totalFat}g fat
                     </Text>
                   </View>
 
@@ -432,8 +439,22 @@ export default function HomeScreen() {
                       <View style={styles.sheetItemTextGroup}>
                         <Text style={styles.sheetItemName}>{item.name}</Text>
                         <Text style={styles.sheetItemMeta}>
-                          {item.diningHall} · {item.mealPeriod} · {item.category}
+                          {item.diningHall} · {formatLabel(item.mealPeriod)} · {formatLabel(item.category)}
                         </Text>
+                        <Text style={styles.sheetItemMacros}>
+                          {item.protein}g protein · {item.carbs}g carbs · {item.fat}g fat
+                        </Text>
+                        {item.allergens.length > 0 ? (
+                          <View style={styles.allergenPillRow}>
+                            {item.allergens.map((allergen) => (
+                              <View key={allergen} style={styles.allergenPill}>
+                                <Text style={styles.allergenPillText}>
+                                  Contains {formatLabel(allergen)}
+                                </Text>
+                              </View>
+                            ))}
+                          </View>
+                        ) : null}
                       </View>
 
                       <Text style={styles.sheetItemCalories}>
@@ -735,5 +756,27 @@ sheetExplanation: {
   fontSize: 16,
   lineHeight: 23,
   color: "#4b5563",
+},
+sheetItemMacros: {
+  marginTop: 4,
+  fontSize: 13,
+  color: "#4b5563",
+},
+allergenPillRow: {
+  marginTop: 8,
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 6,
+},
+allergenPill: {
+  paddingHorizontal: 9,
+  paddingVertical: 4,
+  borderRadius: 999,
+  backgroundColor: "#fee2e2",
+},
+allergenPillText: {
+  fontSize: 12,
+  fontWeight: "700",
+  color: "#b91c1c",
 },
 });

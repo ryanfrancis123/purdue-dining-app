@@ -24,6 +24,8 @@ export function MenuItemCard({
 
   const formattedDietaryTags = item.dietaryTags.map(formatLabel);
   const formattedAllergens = item.allergens.map(formatLabel);
+  const formattedMealPeriod = formatLabel(item.mealPeriod);
+  const formattedCategory = formatLabel(item.category);
   
   
   if (variant === "compact") {
@@ -42,7 +44,7 @@ export function MenuItemCard({
             </View>
 
             <Text style={styles.compactMeta}>
-                {item.diningHall} • {item.mealPeriod} • {item.category}
+                {item.diningHall} • {formattedMealPeriod} • {formattedCategory}
             </Text>
 
             <Text style={styles.compactMacros}>
@@ -66,7 +68,7 @@ export function MenuItemCard({
       </View>
 
       <Text style={styles.locationText}>
-        {item.diningHall} • {item.mealPeriod} • {item.category}
+        {item.diningHall} • {formattedMealPeriod} • {formattedCategory}
       </Text>
 
       {item.servingSize ? (

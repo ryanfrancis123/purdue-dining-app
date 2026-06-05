@@ -8,6 +8,12 @@ type MealRecommendationCardProps = {
   onPress: () => void;
 };
 
+function formatLabel(value: string) {
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function getMealPeriodLabel(meal: MealRecommendation) {
   const firstSpecificMealPeriod = meal.items.find(
     (item) => item.mealPeriod !== "all_day"
@@ -17,9 +23,7 @@ function getMealPeriodLabel(meal: MealRecommendation) {
     return "All Day";
   }
 
-  return firstSpecificMealPeriod
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+  return formatLabel(firstSpecificMealPeriod);
 }
 
 function getDiningHallLabel(meal: MealRecommendation) {
@@ -72,7 +76,7 @@ export function MealRecommendationCard({
         <Text style={styles.summaryText}>{meal.totalFat}g fat</Text>
       </View>
 
-      <Text style={styles.tapHint}>Tap for details</Text>
+      <Text style={styles.tapHint}>View details</Text>
     </Pressable>
   );
 }
@@ -80,9 +84,9 @@ export function MealRecommendationCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#ffffff",
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 14,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: "#e5e7eb",
   },
@@ -98,7 +102,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionLabel: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: "800",
     color: "#111827",
   },
@@ -108,23 +112,23 @@ const styles = StyleSheet.create({
     color: "#6b7280",
   },
   calorieText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "800",
     color: "#b45309",
   },
   itemsText: {
-    marginTop: 14,
-    fontSize: 16,
-    lineHeight: 22,
+    marginTop: 12,
+    fontSize: 15,
+    lineHeight: 21,
     fontWeight: "600",
     color: "#111827",
   },
   summaryRow: {
-    marginTop: 12,
+    marginTop: 10,
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
   },
   summaryText: {
     fontSize: 14,
@@ -135,9 +139,9 @@ const styles = StyleSheet.create({
     color: "#9ca3af",
   },
   tapHint: {
-    marginTop: 14,
+    marginTop: 12,
     fontSize: 13,
-    fontWeight: "700",
-    color: "#2563eb",
+    fontWeight: "600",
+    color: "#4b5563",
   },
 });
