@@ -51,6 +51,13 @@ VALID_CATEGORIES = {
 }
 
 
+VALID_SOURCES = {
+    "csv_seed",
+    "manual",
+    "purdue_menu",
+}
+
+
 def parse_number(value: str, column_name: str, row_number: int) -> float | None:
     value = value.strip()
 
@@ -179,8 +186,11 @@ def validate_csv() -> bool:
                 )
                 has_errors = True
 
-            if source == "":
-                print(f"Row {row_number}: source is empty.")
+            if source not in VALID_SOURCES:
+                print(
+                    f"Row {row_number}: invalid source '{source}'. "
+                    f"Allowed: {sorted(VALID_SOURCES)}"
+                )
                 has_errors = True
 
             for numeric_column in ["calories", "protein_g", "carbs_g", "fat_g"]:
