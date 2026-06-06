@@ -52,28 +52,37 @@ function buildExplanation(
   const proteinDifference = totals.protein - targets.protein;
   const carbDifference = totals.carbs - targets.carbs;
 
-  const calorieText =
-    calorieDifference === 0
-      ? "matches your calorie target"
-      : calorieDifference > 0
-      ? `${calorieDifference} calories over your target`
-      : `${Math.abs(calorieDifference)} calories under your target`;
+  const reasons: string[] = [];
 
-  const proteinText =
-    proteinDifference === 0
-      ? "matches your protein target"
-      : proteinDifference > 0
-      ? `${proteinDifference}g protein over your target`
-      : `${Math.abs(proteinDifference)}g protein under your target`;
+  const absoluteCalorieDifference = Math.abs(calorieDifference);
+  const absoluteProteinDifference = Math.abs(proteinDifference);
+  const absoluteCarbDifference = Math.abs(carbDifference);
 
-  const carbText =
-    carbDifference === 0
-      ? "matches your carb target"
-      : carbDifference > 0
-      ? `${carbDifference}g carbs over your target`
-      : `${Math.abs(carbDifference)}g carbs under your target`;
+  if (absoluteCalorieDifference <= 100) {
+    reasons.push("close to your calorie target");
+  } else if (calorieDifference < 0) {
+    reasons.push(`${absoluteCalorieDifference} calories under your target`);
+  } else {
+    reasons.push(`${absoluteCalorieDifference} calories over your target`);
+  }
 
-  return `This meal ${calorieText}, ${proteinText}, and ${carbText}.`;
+  if (absoluteProteinDifference <= 5) {
+    reasons.push("strong protein match");
+  } else if (proteinDifference > 0) {
+    reasons.push(`${proteinDifference}g protein above your target`);
+  } else {
+    reasons.push(`${absoluteProteinDifference}g protein below your target`);
+  }
+
+  if (absoluteCarbDifference <= 10) {
+    reasons.push("close to your carb target");
+  } else if (carbDifference < 0) {
+    reasons.push("lower-carb option");
+  } else {
+    reasons.push(`${carbDifference}g carbs above your target`);
+  }
+
+  return `Recommended because it is ${reasons.join(", ")}.`;
 }
 
 function mealPeriodsAreCompatible(items: MenuItem[]) {
