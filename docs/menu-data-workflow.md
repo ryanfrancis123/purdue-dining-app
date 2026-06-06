@@ -38,6 +38,7 @@ cd C:\Projects\PurdueDiningApp\app
 npm run report:menu
 ```
 
+````md
 The report shows:
 
 ```txt
@@ -46,9 +47,12 @@ Meal period counts
 Category counts
 Dining hall counts
 Source counts
-```
+Meal period balance status
+Category balance status
 
 This helps confirm that the seed data has enough coverage across breakfast, lunch, dinner, categories, and dining halls before importing it into Supabase.
+
+The balance checks currently focus on meal periods and categories because those are the most important dimensions for the recommendation engine.
 
 ## CSV format rules
 
