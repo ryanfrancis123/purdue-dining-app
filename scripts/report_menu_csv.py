@@ -17,6 +17,22 @@ def print_counter(title: str, counter: Counter[str]) -> None:
     for key, count in sorted(counter.items()):
         print(f"- {key}: {count}")
 
+def print_balance_check(title: str, counter: Counter[str]) -> None:
+    print(f"\n{title}")
+
+    if not counter:
+        print("Status: no data")
+        return
+
+    counts = list(counter.values())
+    min_count = min(counts)
+    max_count = max(counts)
+
+    if min_count == max_count:
+        print(f"Status: balanced ({min_count} each)")
+    else:
+        print(f"Status: not balanced (min {min_count}, max {max_count})")
+
 
 def main() -> None:
     if not CSV_PATH.exists():
@@ -48,6 +64,9 @@ def main() -> None:
     print_counter("Categories:", category_counts)
     print_counter("Dining halls:", dining_hall_counts)
     print_counter("Sources:", source_counts)
+    
+    print_balance_check("Meal period balance:", meal_period_counts)
+    print_balance_check("Category balance:", category_counts)
 
 
 if __name__ == "__main__":
