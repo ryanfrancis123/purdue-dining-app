@@ -29,10 +29,62 @@ function formatLabel(value: string) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+type TargetPresetId =
+  | "balanced"
+  | "higher_protein"
+  | "lower_calorie"
+  | "pre_workout"
+  | "custom";
+
+type TargetPreset = {
+  id: TargetPresetId;
+  label: string;
+  description: string;
+  calories: string;
+  protein: string;
+  carbs: string;
+};
+
+const TARGET_PRESETS: TargetPreset[] = [
+  {
+    id: "balanced",
+    label: "Balanced Meal",
+    description: "Moderate calories, protein, and carbs for a general dining hall meal.",
+    calories: "700",
+    protein: "35",
+    carbs: "80",
+  },
+  {
+    id: "higher_protein",
+    label: "Higher Protein",
+    description: "A stronger protein target while keeping calories reasonable.",
+    calories: "750",
+    protein: "50",
+    carbs: "70",
+  },
+  {
+    id: "lower_calorie",
+    label: "Lower Calorie",
+    description: "A lighter meal target for when you want something less heavy.",
+    calories: "500",
+    protein: "30",
+    carbs: "55",
+  },
+  {
+    id: "pre_workout",
+    label: "Pre-Workout",
+    description: "More carbs for energy before training, practice, or activity.",
+    calories: "750",
+    protein: "30",
+    carbs: "105",
+  },
+];
+
 export default function HomeScreen() {
   const [caloriesInput, setCaloriesInput] = useState("600");
   const [proteinInput, setProteinInput] = useState("40");
   const [carbsInput, setCarbsInput] = useState("60");
+  const [selectedPresetId, setSelectedPresetId] = useState<TargetPresetId>("balanced");
   const [selectedMealPeriod, setSelectedMealPeriod] = useState<
     MealPeriod | undefined
   >(undefined);
@@ -129,6 +181,13 @@ export default function HomeScreen() {
     });
   }
 
+  function applyTargetPreset(preset: TargetPreset) {
+    setSelectedPresetId(preset.id);
+    setCaloriesInput(preset.calories);
+    setProteinInput(preset.protein);
+    setCarbsInput(preset.carbs);
+  }
+
   function toggleAllergen(allergen: Allergen) {
     if (excludedAllergens.includes(allergen)) {
       setExcludedAllergens(
@@ -145,9 +204,47 @@ export default function HomeScreen() {
         <Text style={styles.title}>Purdue Dining Macro Planner</Text>
 
         <Text style={styles.subtitle}>
-          Enter your macro targets and get realistic meal combinations from sample
-          dining hall data.
+          Set your meal targets. Recommendations are ranked based on how close meals are
+          to these visible numbers.
         </Text>
+
+        <View style={styles.presetSection}>
+          <Text style={styles.sectionLabel}>Quick targets</Text>
+
+          <View style={styles.presetGrid}>
+            {TARGET_PRESETS.map((preset) => {
+              const isSelected = selectedPresetId === preset.id;
+
+              return (
+                <Pressable
+                  key={preset.id}
+                  style={[
+                    styles.presetButton,
+                    isSelected && styles.selectedPresetButton,
+                  ]}
+                  onPress={() => applyTargetPreset(preset)}
+                >
+                  <Text
+                    style={[
+                      styles.presetButtonText,
+                      isSelected && styles.selectedPresetButtonText,
+                    ]}
+                  >
+                    {preset.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={styles.presetDescription}>
+            {selectedPresetId === "custom"
+              ? "Custom targets based on your manual edits."
+              : TARGET_PRESETS.find((preset) => preset.id === selectedPresetId)
+                  ?.description}
+          </Text>
+        </View>
+
 
         <View style={styles.inputSection}>
           <View style={styles.inputGroup}>
@@ -155,7 +252,10 @@ export default function HomeScreen() {
             <TextInput
               style={styles.input}
               value={caloriesInput}
-              onChangeText={setCaloriesInput}
+              onChangeText={(value) => {
+                setCaloriesInput(value);
+                setSelectedPresetId("custom");
+              }}
               keyboardType="numeric"
               placeholder="600"
             />
@@ -166,7 +266,10 @@ export default function HomeScreen() {
             <TextInput
               style={styles.input}
               value={proteinInput}
-              onChangeText={setProteinInput}
+              onChangeText={(value) => {
+                setProteinInput(value);
+                setSelectedPresetId("custom");
+              }}
               keyboardType="numeric"
               placeholder="40"
             />
@@ -177,7 +280,10 @@ export default function HomeScreen() {
             <TextInput
               style={styles.input}
               value={carbsInput}
-              onChangeText={setCarbsInput}
+              onChangeText={(value) => {
+                setCarbsInput(value);
+                setSelectedPresetId("custom");
+              }}
               keyboardType="numeric"
               placeholder="60"
             />
@@ -777,5 +883,52 @@ allergenPillText: {
   fontSize: 12,
   fontWeight: "700",
   color: "#b91c1c",
+},
+presetSection: {
+  marginBottom: 20,
+},
+
+sectionLabel: {
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#111827",
+  marginBottom: 10,
+},
+
+presetGrid: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 8,
+},
+
+presetButton: {
+  borderWidth: 1,
+  borderColor: "#D1D5DB",
+  borderRadius: 999,
+  paddingVertical: 8,
+  paddingHorizontal: 12,
+  backgroundColor: "#FFFFFF",
+},
+
+selectedPresetButton: {
+  backgroundColor: "#111827",
+  borderColor: "#111827",
+},
+
+presetButtonText: {
+  fontSize: 13,
+  fontWeight: "600",
+  color: "#374151",
+},
+
+selectedPresetButtonText: {
+  color: "#FFFFFF",
+},
+
+presetDescription: {
+  marginTop: 10,
+  fontSize: 13,
+  lineHeight: 18,
+  color: "#6B7280",
 },
 });
