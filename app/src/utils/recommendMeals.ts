@@ -10,6 +10,9 @@ import {
 const CALORIE_SCORE_WEIGHT = 1;
 const PROTEIN_SCORE_WEIGHT = 8;
 const CARB_SCORE_WEIGHT = 3;
+const CLOSE_CALORIE_PERCENT = 0.15;
+const CLOSE_PROTEIN_PERCENT = 0.15;
+const CLOSE_CARB_PERCENT = 0.2;
 
 function getRelativeDifference(actual: number, target: number) {
   if (target <= 0) {
@@ -85,7 +88,10 @@ function buildExplanation(
   const absoluteProteinDifference = Math.abs(proteinDifference);
   const absoluteCarbDifference = Math.abs(carbDifference);
 
-  if (absoluteCalorieDifference <= 100) {
+  if (
+    getRelativeDifference(totals.calories, targets.calories) <=
+    CLOSE_CALORIE_PERCENT
+  ) {
     reasons.push("close to your calorie target");
   } else if (calorieDifference < 0) {
     reasons.push(`${absoluteCalorieDifference} calories under your target`);
@@ -93,7 +99,10 @@ function buildExplanation(
     reasons.push(`${absoluteCalorieDifference} calories over your target`);
   }
 
-  if (absoluteProteinDifference <= 5) {
+  if (
+    getRelativeDifference(totals.protein, targets.protein) <=
+    CLOSE_PROTEIN_PERCENT
+  ) {
     reasons.push("strong protein match");
   } else if (proteinDifference > 0) {
     reasons.push(`${proteinDifference}g protein above your target`);
@@ -101,7 +110,10 @@ function buildExplanation(
     reasons.push(`${absoluteProteinDifference}g protein below your target`);
   }
 
-  if (absoluteCarbDifference <= 10) {
+  if (
+    getRelativeDifference(totals.carbs, targets.carbs) <=
+    CLOSE_CARB_PERCENT
+  ) {
     reasons.push("close to your carb target");
   } else if (carbDifference < 0) {
     reasons.push("lower-carb option");
