@@ -62,6 +62,7 @@ export default function HomeScreen() {
 
         setMenuItems(result.items);
         setMenuDataSource(result.source);
+        console.log(`Menu data loaded from: ${result.source}`);
       } catch (error) {
         console.error(error);
         setMenuItemsError("Could not load menu items.");
