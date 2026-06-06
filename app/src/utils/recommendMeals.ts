@@ -50,23 +50,18 @@ function calculateScore(
   },
   targets: MacroTargets
 ) {
-  const calorieDifference = getRelativeDifference(
-    totals.calories,
-    targets.calories
-  );
+  const calorieScore =
+    getRelativeDifference(totals.calories, targets.calories) *
+    CALORIE_SCORE_WEIGHT;
 
-  const proteinDifference = getRelativeDifference(
-    totals.protein,
-    targets.protein
-  );
+  const proteinScore =
+    getRelativeDifference(totals.protein, targets.protein) *
+    PROTEIN_SCORE_WEIGHT;
 
-  const carbDifference = getRelativeDifference(totals.carbs, targets.carbs);
+  const carbScore =
+    getRelativeDifference(totals.carbs, targets.carbs) * CARB_SCORE_WEIGHT;
 
-  return (
-    calorieDifference * CALORIE_SCORE_WEIGHT +
-    proteinDifference * PROTEIN_SCORE_WEIGHT +
-    carbDifference * CARB_SCORE_WEIGHT
-  );
+  return calorieScore + proteinScore + carbScore;
 }
 
 function buildExplanation(
