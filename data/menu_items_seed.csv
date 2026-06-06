@@ -17,3 +17,21 @@ Mixed Vegetables,Wiley,lunch,side,70,3,12,1,{},"{""vegetarian"",""vegan""}",1 cu
 Baked Salmon,Ford,dinner,protein,280,34,0,14,"{""fish""}","{""high_protein""}",1 fillet,csv_seed,true
 Pasta Marinara,Ford,dinner,carb,310,9,58,6,"{""wheat""}","{""vegetarian"",""vegan""}",1 bowl,csv_seed,true
 Side Salad,Ford,dinner,side,60,2,8,2,{},"{""vegetarian"",""vegan""}",1 bowl,csv_seed,true
+Turkey Sausage Patty,Earhart,breakfast,protein,190,18,2,13,{},"{""high_protein""}",1 patty,csv_seed,true
+Pancakes,Earhart,breakfast,carb,230,6,42,5,"{""wheat"",""egg"",""milk""}","{""vegetarian""}",2 pancakes,csv_seed,true
+Apple Slices,Earhart,breakfast,side,80,0,22,0,{},"{""vegetarian"",""vegan""}",1 cup,csv_seed,true
+Egg White Scramble,Wiley,breakfast,protein,130,20,3,4,"{""egg""}","{""vegetarian"",""high_protein""}",1 serving,csv_seed,true
+Breakfast Potatoes,Wiley,breakfast,carb,160,3,28,5,{},"{""vegetarian"",""vegan""}",1 serving,csv_seed,true
+Orange Slices,Wiley,breakfast,side,70,1,18,0,{},"{""vegetarian"",""vegan""}",1 cup,csv_seed,true
+Chicken Fajita Bowl,Wiley,lunch,protein,260,31,12,9,{},"{""high_protein""}",1 bowl,csv_seed,true
+Cilantro Lime Rice,Wiley,lunch,carb,210,4,43,3,{},"{""vegetarian"",""vegan""}",1 cup,csv_seed,true
+Corn Salad,Wiley,lunch,side,110,3,19,3,{},"{""vegetarian"",""vegan""}",1 serving,csv_seed,true
+Beef Meatballs,Ford,lunch,protein,290,24,8,18,"{""wheat""}","{""high_protein""}",4 meatballs,csv_seed,true
+Penne Pasta,Ford,lunch,carb,250,8,50,2,"{""wheat""}","{""vegetarian"",""vegan""}",1 cup,csv_seed,true
+Roasted Zucchini,Ford,lunch,side,65,2,9,3,{},"{""vegetarian"",""vegan""}",1 serving,csv_seed,true
+Grilled Chicken Thigh,Ford,dinner,protein,300,33,0,18,{},"{""high_protein""}",1 serving,csv_seed,true
+Sweet Potato Mash,Ford,dinner,carb,190,3,38,3,"{""milk""}","{""vegetarian""}",1 serving,csv_seed,true
+Steamed Carrots,Ford,dinner,side,50,1,11,0,{},"{""vegetarian"",""vegan""}",1 serving,csv_seed,true
+Tofu Stir Fry,Wiley,dinner,protein,240,20,12,12,"{""soy""}","{""vegetarian"",""vegan"",""high_protein""}",1 serving,csv_seed,true
+Jasmine Rice,Wiley,dinner,carb,205,4,45,0,{},"{""vegetarian"",""vegan""}",1 cup,csv_seed,true
+Cucumber Salad,Wiley,dinner,side,45,1,7,1,{},"{""vegetarian"",""vegan""}",1 serving,csv_seed,true
