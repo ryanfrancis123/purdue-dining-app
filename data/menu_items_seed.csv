@@ -8,3 +8,12 @@ Hash Browns,Earhart,breakfast,side,180,2,24,9,{},{"vegetarian"},1 serving,csv_se
 Turkey Burger,Ford,dinner,protein,260,28,24,9,{"wheat"},{"high_protein"},1 sandwich,csv_seed,true
 Roasted Potatoes,Ford,dinner,carb,190,4,35,5,{},"{""vegetarian"",""vegan""}",1 serving,csv_seed,true
 Green Beans,Ford,dinner,side,45,2,8,1,{},"{""vegetarian"",""vegan""}",1 serving,csv_seed,true
+Greek Yogurt,Earhart,breakfast,protein,140,15,10,3,"{""milk""}","{""vegetarian""}",1 cup,csv_seed,true
+Whole Wheat Toast,Earhart,breakfast,carb,120,5,22,2,"{""wheat""}","{""vegetarian"",""vegan""}",1 slice,csv_seed,true
+Banana,Earhart,breakfast,side,105,1,27,0,{},"{""vegetarian"",""vegan""}",1 medium,csv_seed,true
+Grilled Turkey Patty,Wiley,lunch,protein,220,30,2,10,{},"{""high_protein""}",1 patty,csv_seed,true
+Mashed Potatoes,Wiley,lunch,carb,170,3,28,5,"{""milk""}","{""vegetarian""}",1 serving,csv_seed,true
+Mixed Vegetables,Wiley,lunch,side,70,3,12,1,{},"{""vegetarian"",""vegan""}",1 cup,csv_seed,true
+Baked Salmon,Ford,dinner,protein,280,34,0,14,"{""fish""}","{""high_protein""}",1 fillet,csv_seed,true
+Pasta Marinara,Ford,dinner,carb,310,9,58,6,"{""wheat""}","{""vegetarian"",""vegan""}",1 bowl,csv_seed,true
+Side Salad,Ford,dinner,side,60,2,8,2,{},"{""vegetarian"",""vegan""}",1 bowl,csv_seed,true
