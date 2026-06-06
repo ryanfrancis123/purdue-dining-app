@@ -23,6 +23,14 @@ A mobile app for helping Purdue students choose dining hall meals based on nutri
 - Supabase-backed menu data
 - Local fallback data if Supabase is unavailable
 
+### Macro Target Presets
+
+The app includes quick macro target presets such as Balanced Meal, Higher Protein, Lower Calorie, and Pre-Workout.
+
+These presets do not secretly change the recommendation scoring logic. Instead, they visibly update the calorie, protein, and carbohydrate target inputs on the home screen. The recommendation engine continues to rank meals based on the visible target numbers.
+
+Users can manually edit the targets after selecting a preset. When they do, the app treats the targets as custom values.
+
 ## Project structure
 
 ```txt
