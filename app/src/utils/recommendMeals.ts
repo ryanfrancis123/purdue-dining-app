@@ -11,6 +11,14 @@ const CALORIE_SCORE_WEIGHT = 1;
 const PROTEIN_SCORE_WEIGHT = 8;
 const CARB_SCORE_WEIGHT = 3;
 
+function getRelativeDifference(actual: number, target: number) {
+  if (target <= 0) {
+    return 0;
+  }
+
+  return Math.abs(actual - target) / target;
+}
+
 function getMealTotals(items: MenuItem[]) {
   return items.reduce(
     (totals, item) => {
@@ -30,20 +38,31 @@ function getMealTotals(items: MenuItem[]) {
   );
 }
 
-function calculateScore(totals: {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-}, targets: MacroTargets) {
-  const calorieDifference = Math.abs(totals.calories - targets.calories);
-  const proteinDifference = Math.abs(totals.protein - targets.protein);
-  const carbDifference = Math.abs(totals.carbs - targets.carbs);
+function calculateScore(
+  totals: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  },
+  targets: MacroTargets
+) {
+  const calorieDifference = getRelativeDifference(
+    totals.calories,
+    targets.calories
+  );
+
+  const proteinDifference = getRelativeDifference(
+    totals.protein,
+    targets.protein
+  );
+
+  const carbDifference = getRelativeDifference(totals.carbs, targets.carbs);
 
   return (
-  calorieDifference * CALORIE_SCORE_WEIGHT +
-  proteinDifference * PROTEIN_SCORE_WEIGHT +
-  carbDifference * CARB_SCORE_WEIGHT
+    calorieDifference * CALORIE_SCORE_WEIGHT +
+    proteinDifference * PROTEIN_SCORE_WEIGHT +
+    carbDifference * CARB_SCORE_WEIGHT
   );
 }
 
