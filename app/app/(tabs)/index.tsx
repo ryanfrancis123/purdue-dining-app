@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { router } from "expo-router";
 import {
   Animated,
   Modal,
@@ -14,7 +13,6 @@ import {
 
 import type { MealRecommendation } from "../../src/types/menu";
 import { MealRecommendationCard } from "../../src/components/MealRecommendationCard";
-import { MenuItemCard } from "../../src/components/MenuItemCard";
 import { getMenuItems } from "../../src/services/menuRepository";
 import { recommendMeals } from "../../src/utils/recommendMeals";
 import {
@@ -365,7 +363,7 @@ export default function HomeScreen() {
           </Text>
           {menuDataSource === "fallback" ? (
             <Text style={styles.fallbackNotice}>
-              Showing offline sample menu because live menu data is unavailable.
+              Live menu data is temporarily unavailable. Showing sample meals instead.
             </Text>
           ) : null}
         </View>
