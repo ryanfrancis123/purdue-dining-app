@@ -9,7 +9,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "validate:menu": "python ../scripts/validate_menu_csv.py"
+    "validate:menu": "python ../scripts/validate_menu_csv.py",
+    "report:menu": "python ../scripts/report_menu_csv.py"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
