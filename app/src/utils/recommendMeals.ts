@@ -81,7 +81,6 @@ function buildExplanation(
 
   const absoluteCalorieDifference = Math.abs(calorieDifference);
   const absoluteProteinDifference = Math.abs(proteinDifference);
-  const absoluteCarbDifference = Math.abs(carbDifference);
 
   if (
     getRelativeDifference(totals.calories, targets.calories) <=
