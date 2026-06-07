@@ -1,47 +1,51 @@
 import { router } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export default function HomeScreen() {
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Purdue Dining</Text>
-        <Text style={styles.subtitle}>
-          Choose how you want to find meals that match your nutrition goals.
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Purdue Dining</Text>
+          <Text style={styles.subtitle}>
+            Choose how you want to find meals that match your nutrition goals.
+          </Text>
+        </View>
+
+        <View style={styles.choiceSection}>
+          <Pressable
+            style={styles.choiceCard}
+            onPress={() => router.push("/manual")}
+          >
+            <Text style={styles.choiceTitle}>Set Targets Manually</Text>
+            <Text style={styles.choiceDescription}>
+              Choose calories, protein, and carbs yourself using quick presets or
+              custom targets.
+            </Text>
+            <Text style={styles.choiceAction}>Start with manual targets →</Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.choiceCard}
+            onPress={() => router.push("/profile")}
+          >
+            <Text style={styles.choiceTitle}>Create Nutrition Profile</Text>
+            <Text style={styles.choiceDescription}>
+              Enter your body, activity level, and goal so the app can suggest
+              better targets later.
+            </Text>
+            <Text style={styles.choiceAction}>Create optional profile →</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.note}>
+          You can use the app without creating a profile. Manual mode is always
+          available.
         </Text>
-      </View>
-
-      <View style={styles.choiceSection}>
-        <Pressable
-          style={styles.choiceCard}
-          onPress={() => router.push("/manual")}
-        >
-          <Text style={styles.choiceTitle}>Set Targets Manually</Text>
-          <Text style={styles.choiceDescription}>
-            Choose calories, protein, and carbs yourself using quick presets or
-            custom targets.
-          </Text>
-          <Text style={styles.choiceAction}>Start with manual targets →</Text>
-        </Pressable>
-
-        <Pressable
-          style={styles.choiceCard}
-          onPress={() => router.push("/profile")}
-        >
-          <Text style={styles.choiceTitle}>Create Nutrition Profile</Text>
-          <Text style={styles.choiceDescription}>
-            Enter your body, activity level, and goal so the app can suggest
-            better targets later.
-          </Text>
-          <Text style={styles.choiceAction}>Create optional profile →</Text>
-        </Pressable>
-      </View>
-
-      <Text style={styles.note}>
-        You can use the app without creating a profile. Manual mode is always
-        available.
-      </Text>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -108,5 +112,9 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     lineHeight: 20,
     textAlign: "center",
+  },
+  safeArea: {
+  flex: 1,
+  backgroundColor: "#f9fafb",
   },
 });
