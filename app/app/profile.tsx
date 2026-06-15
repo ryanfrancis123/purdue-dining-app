@@ -1,16 +1,41 @@
 import { router } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
+import { useState } from "react";
 
 import {
   ACTIVITY_LEVEL_OPTIONS,
   NUTRITION_GOAL_OPTIONS,
 } from "../src/constants/profileOptions";
+import type { ActivityLevel, NutritionGoal, NutritionProfile, Sex } from "../src/types/profile";
 
 export default function ProfileScreen() {
-  const insets = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
+    const [ageInput, setAgeInput] = useState("");
+    const [heightInput, setHeightInput] = useState("");
+    const [weightInput, setWeightInput] = useState("");
 
+    const [sex, setSex] = useState<Sex>("prefer_not_to_say");
+    const [activityLevel, setActivityLevel] =
+    useState<ActivityLevel>("moderate");
+    const [goal, setGoal] = useState<NutritionGoal>("maintain");
+
+    const [savedProfile, setSavedProfile] = useState<NutritionProfile | null>(
+    null
+    );
+    const handleSaveProfile = () => {
+        const profile: NutritionProfile = {
+            age: ageInput.trim() === "" ? null : Number(ageInput),
+            heightCm: heightInput.trim() === "" ? null : Number(heightInput),
+            weightKg: weightInput.trim() === "" ? null : Number(weightInput),
+            sex,
+            activityLevel,
+            goal,
+        };
+
+        setSavedProfile(profile);
+    };
   return (
     <View style={styles.safeArea}>
         <Pressable
@@ -40,26 +65,144 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Profile fields coming next</Text>
+            <Text style={styles.sectionTitle}>Your Details</Text>
 
             <Text style={styles.bodyText}>
-            We will add age, height, weight, sex, activity level, and goal inputs
-            here without forcing users to create an account.
+                Enter only what you want. This profile stays optional and will later help
+                    suggest meal targets.
             </Text>
 
-            <Text style={styles.label}>Activity levels planned:</Text>
-            {ACTIVITY_LEVEL_OPTIONS.map((option) => (
-            <Text key={option.value} style={styles.optionText}>
-                • {option.label}: {option.description}
-            </Text>
-            ))}
+            <View style={styles.inputGroup}>
+                <Text style={styles.label}>Age</Text>
+                <TextInput
+                    style={styles.input}
+                    value={ageInput}
+                    onChangeText={setAgeInput}
+                    keyboardType="numeric"
+                    placeholder="18"
+                />
+            </View>
 
-            <Text style={styles.label}>Goals planned:</Text>
-            {NUTRITION_GOAL_OPTIONS.map((option) => (
-            <Text key={option.value} style={styles.optionText}>
-                • {option.label}: {option.description}
-            </Text>
-            ))}
+            <View style={styles.inputGroup}>
+                <Text style={styles.label}>Height (cm)</Text>
+                <TextInput
+                    style={styles.input}
+                    value={heightInput}
+                    onChangeText={setHeightInput}
+                    keyboardType="numeric"
+                    placeholder="175"
+                />
+            </View>
+
+            <View style={styles.inputGroup}>
+                <Text style={styles.label}>Weight (kg)</Text>
+                <TextInput
+                    style={styles.input}
+                    value={weightInput}
+                    onChangeText={setWeightInput}
+                    keyboardType="numeric"
+                    placeholder="70"
+                />
+            </View>
+
+            <Text style={styles.label}>Sex</Text>
+            <View style={styles.optionGrid}>
+                {[
+                    { label: "Male", value: "male" as Sex },
+                    { label: "Female", value: "female" as Sex },
+                    { label: "Prefer not to say", value: "prefer_not_to_say" as Sex },
+                ].map((option) => {
+                    const isSelected = sex === option.value;
+
+                    return (
+                        <Pressable
+                            key={option.value}
+                            style={[
+                                styles.optionButton,
+                                isSelected && styles.optionButtonSelected,
+                            ]}
+                            onPress={() => setSex(option.value)}
+                        >
+                            <Text
+                                style={[
+                                    styles.optionButtonText,
+                                    isSelected && styles.optionButtonTextSelected,
+                                ]}
+                            >
+                                {option.label}
+                            </Text>
+                        </Pressable>
+                    );
+                })}
+            </View>
+
+            <Text style={styles.label}>Activity Level</Text>
+            <View style={styles.optionGrid}>
+                {ACTIVITY_LEVEL_OPTIONS.map((option) => {
+                    const isSelected = activityLevel === option.value;
+
+                    return (
+                        <Pressable
+                            key={option.value}
+                            style={[
+                            styles.optionButton,
+                            isSelected && styles.optionButtonSelected,
+                            ]}
+                            onPress={() => setActivityLevel(option.value)}
+                        >
+                        <Text
+                            style={[
+                                styles.optionButtonText,
+                                isSelected && styles.optionButtonTextSelected,
+                            ]}
+                        >
+                            {option.label}
+                        </Text>
+                    </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={styles.label}>Goal</Text>
+            <View style={styles.optionGrid}>
+                {NUTRITION_GOAL_OPTIONS.map((option) => {
+                    const isSelected = goal === option.value;
+
+                    return (
+                    <Pressable
+                        key={option.value}
+                        style={[
+                            styles.optionButton,
+                            isSelected && styles.optionButtonSelected,
+                        ]}
+                        onPress={() => setGoal(option.value)}
+                    >
+                        <Text
+                            style={[
+                                styles.optionButtonText,
+                                isSelected && styles.optionButtonTextSelected,
+                            ]}
+                        >
+                            {option.label}
+                        </Text>
+                    </Pressable>
+                );
+                })}
+            </View>
+
+            <Pressable style={styles.saveButton} onPress={handleSaveProfile}>
+                <Text style={styles.saveButtonText}>Save Profile</Text>
+            </Pressable>
+
+            {savedProfile && (
+                <View style={styles.savedNotice}>
+                    <Text style={styles.savedNoticeTitle}>Profile saved locally</Text>
+                    <Text style={styles.savedNoticeText}>
+                        Goal: {savedProfile.goal.replace("_", " ")} · Activity:{" "}
+                        {savedProfile.activityLevel.replace("_", " ")}
+                    </Text>
+                </View>
+            )}
         </View>
       </ScrollView>
     </View>
@@ -177,4 +320,83 @@ const styles = StyleSheet.create({
     lineHeight: 40,
     marginTop: -3,
   },
+  inputGroup: {
+  marginBottom: 14,
+},
+
+input: {
+  borderWidth: 1,
+  borderColor: "#d1d5db",
+  borderRadius: 14,
+  paddingHorizontal: 14,
+  paddingVertical: 12,
+  fontSize: 16,
+  backgroundColor: "#ffffff",
+  color: "#111827",
+},
+
+optionGrid: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 10,
+  marginBottom: 16,
+},
+
+optionButton: {
+  borderWidth: 1,
+  borderColor: "#d1d5db",
+  borderRadius: 999,
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  backgroundColor: "#ffffff",
+},
+
+optionButtonSelected: {
+  backgroundColor: "#111827",
+  borderColor: "#111827",
+},
+
+optionButtonText: {
+  fontSize: 14,
+  fontWeight: "700",
+  color: "#374151",
+},
+
+optionButtonTextSelected: {
+  color: "#ffffff",
+},
+
+saveButton: {
+  backgroundColor: "#111827",
+  borderRadius: 16,
+  paddingVertical: 15,
+  alignItems: "center",
+  marginTop: 8,
+},
+
+saveButtonText: {
+  color: "#ffffff",
+  fontSize: 16,
+  fontWeight: "800",
+},
+
+savedNotice: {
+  marginTop: 16,
+  padding: 14,
+  borderRadius: 14,
+  backgroundColor: "#f3f4f6",
+},
+
+savedNoticeTitle: {
+  fontSize: 15,
+  fontWeight: "800",
+  color: "#111827",
+  marginBottom: 4,
+},
+
+savedNoticeText: {
+  fontSize: 14,
+  color: "#6b7280",
+  lineHeight: 20,
+},
 });
