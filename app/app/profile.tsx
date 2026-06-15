@@ -122,9 +122,11 @@ export default function ProfileScreen() {
   const [goal, setGoal] = useState<NutritionGoal | null>(null);
 
   const [savedProfile, setSavedProfile] = useState<NutritionProfile | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const currentStep = PROFILE_STEPS[currentStepIndex];
   const isReviewStep = currentStep === "review";
+  const shouldShowDashboard = savedProfile !== null && !isEditingProfile;
   const progressPercent: DimensionValue = `${((currentStepIndex + 1) / TOTAL_STEPS) * 100}%`;
 
   const canContinue =
@@ -163,6 +165,7 @@ export default function ProfileScreen() {
     };
 
     setSavedProfile(profile);
+    setIsEditingProfile(false);
   };
 
   const setUsHeight = (part: "feet" | "inches", value: number) => {
@@ -370,6 +373,83 @@ export default function ProfileScreen() {
     }
   }
 
+  function renderProfileDashboard() {
+    if (savedProfile === null) {
+      return null;
+    }
+
+    const dashboardTarget = estimateMealMacroTarget(savedProfile);
+    const dashboardActivityOption = ACTIVITY_DISPLAY_OPTIONS.find(
+      (option) => option.value === savedProfile.activityLevel
+    );
+
+    return (
+      <ScrollView
+        contentContainerStyle={[
+          styles.stepScrollContent,
+          { paddingBottom: insets.bottom + 32 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.stepCard}>
+          <Text style={styles.eyebrow}>Profile saved</Text>
+          <Text style={styles.stepTitle}>Your Nutrition Profile</Text>
+          <Text style={styles.stepBody}>
+            Keep these estimates visible before using them for recommendations.
+          </Text>
+
+          <View style={styles.targetPreviewCard}>
+            <Text style={styles.targetPreviewTitle}>Estimated meal targets</Text>
+            <Text style={styles.targetPreviewText}>
+              Based on your profile choices. You can review and adjust these before
+              using them.
+            </Text>
+            <View style={styles.targetPreviewRow}>
+              {renderTargetPreviewValue("Calories", `${dashboardTarget.calories} kcal`)}
+              {renderTargetPreviewValue("Protein", `${dashboardTarget.proteinGrams}g`)}
+              {renderTargetPreviewValue("Carbs", `${dashboardTarget.carbsGrams}g`)}
+            </View>
+          </View>
+
+          <View style={styles.dashboardSection}>
+            <Text style={styles.targetPreviewTitle}>Profile summary</Text>
+            <View style={styles.reviewList}>
+              {renderReviewRow(
+                "Age",
+                savedProfile.age === null ? "Not provided" : `${savedProfile.age}`
+              )}
+              {renderReviewRow("Height", formatSavedHeight(savedProfile.heightCm))}
+              {renderReviewRow("Weight", formatSavedWeight(savedProfile.weightKg))}
+              {renderReviewRow("Sex", formatProfileLabel(savedProfile.sex))}
+              {renderReviewRow(
+                "Activity",
+                dashboardActivityOption
+                  ? dashboardActivityOption.label
+                  : formatProfileLabel(savedProfile.activityLevel)
+              )}
+              {renderReviewRow("Goal", formatProfileLabel(savedProfile.goal))}
+            </View>
+          </View>
+
+          <View style={styles.dashboardActions}>
+            <Pressable style={[styles.primaryButton, styles.disabledPrimaryButton]} disabled>
+              <Text style={styles.primaryButtonText}>Use These Targets</Text>
+            </Pressable>
+            <Pressable
+              style={styles.secondaryButton}
+              onPress={() => {
+                setIsEditingProfile(true);
+                setCurrentStepIndex(PROFILE_STEPS.indexOf("review"));
+              }}
+            >
+              <Text style={styles.secondaryButtonText}>Edit Profile</Text>
+            </Pressable>
+          </View>
+        </View>
+      </ScrollView>
+    );
+  }
+
   function renderAgeWheel() {
     return renderNumberWheel({
       label: "Age",
@@ -575,6 +655,31 @@ export default function ProfileScreen() {
     );
   }
 
+  function formatSavedHeight(savedHeightCm: number | null) {
+    if (savedHeightCm === null) {
+      return "Not provided";
+    }
+
+    if (unitSystem === "metric") {
+      return `${savedHeightCm} cm`;
+    }
+
+    const { feet, inches } = centimetersToFeetInches(savedHeightCm);
+    return `${feet} ft ${inches} in`;
+  }
+
+  function formatSavedWeight(savedWeightKg: number | null) {
+    if (savedWeightKg === null) {
+      return "Not provided";
+    }
+
+    if (unitSystem === "metric") {
+      return `${savedWeightKg} kg`;
+    }
+
+    return `${kilogramsToPounds(savedWeightKg)} lb`;
+  }
+
   function renderTargetPreviewValue(label: string, value: string) {
     return (
       <View key={label} style={styles.targetPreviewValue}>
@@ -598,50 +703,56 @@ export default function ProfileScreen() {
       </Pressable>
 
       <View style={[styles.container, { paddingTop: insets.top + 76 }]}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressText}>
-            Step {currentStepIndex + 1} of {TOTAL_STEPS}
-          </Text>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: progressPercent }]} />
-          </View>
-        </View>
+        {shouldShowDashboard ? (
+          renderProfileDashboard()
+        ) : (
+          <>
+            <View style={styles.progressHeader}>
+              <Text style={styles.progressText}>
+                Step {currentStepIndex + 1} of {TOTAL_STEPS}
+              </Text>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: progressPercent }]} />
+              </View>
+            </View>
 
-        <ScrollView
-          contentContainerStyle={[
-            styles.stepScrollContent,
-            { paddingBottom: insets.bottom + 148 },
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {renderStepContent()}
-        </ScrollView>
+            <ScrollView
+              contentContainerStyle={[
+                styles.stepScrollContent,
+                { paddingBottom: insets.bottom + 148 },
+              ]}
+              showsVerticalScrollIndicator={false}
+            >
+              {renderStepContent()}
+            </ScrollView>
 
-        <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
-          <Pressable
-            style={[
-              styles.secondaryButton,
-              currentStepIndex === 0 && styles.hiddenButton,
-            ]}
-            onPress={handlePreviousStep}
-            disabled={currentStepIndex === 0}
-          >
-            <Text style={styles.secondaryButtonText}>Back</Text>
-          </Pressable>
+            <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
+              <Pressable
+                style={[
+                  styles.secondaryButton,
+                  currentStepIndex === 0 && styles.hiddenButton,
+                ]}
+                onPress={handlePreviousStep}
+                disabled={currentStepIndex === 0}
+              >
+                <Text style={styles.secondaryButtonText}>Back</Text>
+              </Pressable>
 
-          <Pressable
-            style={[
-              styles.primaryButton,
-              !canContinue && styles.disabledPrimaryButton,
-            ]}
-            onPress={isReviewStep ? handleSaveProfile : handleNextStep}
-            disabled={!canContinue}
-          >
-            <Text style={styles.primaryButtonText}>
-              {isReviewStep ? "Save Nutrition Profile" : "Continue"}
-            </Text>
-          </Pressable>
-        </View>
+              <Pressable
+                style={[
+                  styles.primaryButton,
+                  !canContinue && styles.disabledPrimaryButton,
+                ]}
+                onPress={isReviewStep ? handleSaveProfile : handleNextStep}
+                disabled={!canContinue}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {isReviewStep ? "Save Nutrition Profile" : "Continue"}
+                </Text>
+              </Pressable>
+            </View>
+          </>
+        )}
       </View>
     </View>
   );
@@ -1009,6 +1120,15 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     fontWeight: "800",
     color: "#111",
+  },
+
+  dashboardSection: {
+    marginTop: 18,
+  },
+
+  dashboardActions: {
+    gap: 12,
+    marginTop: 18,
   },
 
   bottomBar: {
