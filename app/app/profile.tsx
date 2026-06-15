@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { BlurView } from "expo-blur";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps } from "react";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -384,35 +384,6 @@ export default function ProfileScreen() {
     }
   }
 
-  function renderDashboardSectionCard({
-    body,
-    children,
-    iconName,
-    title,
-  }: {
-    body: string;
-    children?: ReactNode;
-    iconName?: MaterialIconName;
-    title: string;
-  }) {
-    return (
-      <View style={styles.dashboardSectionCard}>
-        <View style={styles.dashboardSectionCardHeader}>
-          {iconName ? (
-            <View style={styles.dashboardSectionIconBadge}>
-              <MaterialIcons name={iconName} size={20} color="#b08a3c" />
-            </View>
-          ) : null}
-          <View style={styles.dashboardSectionTitleGroup}>
-            <Text style={styles.targetPreviewTitle}>{title}</Text>
-            <Text style={styles.targetPreviewText}>{body}</Text>
-          </View>
-        </View>
-        {children}
-      </View>
-    );
-  }
-
   function renderSummaryMetricTile({
     accentColor,
     iconName,
@@ -454,6 +425,144 @@ export default function ProfileScreen() {
           <Text style={styles.profileSnapshotLabel}>{label}</Text>
         </View>
         <Text style={styles.profileSnapshotValue}>{value}</Text>
+      </View>
+    );
+  }
+
+  function renderDashboardSectionHeader({
+    body,
+    eyebrow,
+    iconName,
+    title,
+  }: {
+    body: string;
+    eyebrow: string;
+    iconName: MaterialIconName;
+    title: string;
+  }) {
+    return (
+      <View style={styles.summaryHeroCard}>
+        <View style={styles.summaryHeroTextGroup}>
+          <Text style={styles.summaryEyebrow}>{eyebrow}</Text>
+          <Text style={styles.summaryTitle}>{title}</Text>
+          <Text style={styles.summaryBody}>{body}</Text>
+        </View>
+        <View style={styles.summaryHeroBadge}>
+          <MaterialIcons name={iconName} size={26} color="#111" />
+        </View>
+      </View>
+    );
+  }
+
+  function renderDashboardPlaceholderCard({
+    body,
+    iconName,
+    subtitle,
+    title,
+  }: {
+    body: string;
+    iconName: MaterialIconName;
+    subtitle: string;
+    title: string;
+  }) {
+    return (
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryCardHeader}>
+          <View style={styles.summaryCardBadge}>
+            <MaterialIcons name={iconName} size={24} color="#b08a3c" />
+          </View>
+          <View style={styles.summaryCardTitleGroup}>
+            <Text style={styles.summaryCardTitle}>{title}</Text>
+            <Text style={styles.summaryCardSubtitle}>{subtitle}</Text>
+          </View>
+        </View>
+        <Text style={styles.dashboardPlaceholderBody}>{body}</Text>
+      </View>
+    );
+  }
+
+  function renderProgressDayPreview(day: string) {
+    return (
+      <View key={day} style={styles.progressDayPreview}>
+        <View style={styles.progressDayCircle} />
+        <Text style={styles.progressDayLabel}>{day}</Text>
+      </View>
+    );
+  }
+
+  function renderProgressTargetRow({
+    iconName,
+    label,
+    target,
+  }: {
+    iconName: MaterialIconName;
+    label: string;
+    target: string;
+  }) {
+    return (
+      <View style={styles.progressTargetRow}>
+        <View style={styles.progressTargetLabelGroup}>
+          <MaterialIcons name={iconName} size={18} color="#b08a3c" />
+          <Text style={styles.progressTargetLabel}>{label}</Text>
+        </View>
+        <Text style={styles.progressTargetValue}>Not started / {target}</Text>
+      </View>
+    );
+  }
+
+  function renderMealTargetPreviewItem({
+    accentColor,
+    iconName,
+    label,
+    value,
+  }: {
+    accentColor: string;
+    iconName: MaterialIconName;
+    label: string;
+    value: string;
+  }) {
+    return (
+      <View style={styles.mealTargetPreviewItem}>
+        <View style={[styles.mealTargetIconBadge, { backgroundColor: accentColor }]}>
+          <MaterialIcons name={iconName} size={17} color="#111" />
+        </View>
+        <View style={styles.mealTargetTextGroup}>
+          <Text style={styles.mealTargetLabel}>{label}</Text>
+          <Text style={styles.mealTargetValue}>{value}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  function renderPreferencePreviewChip({
+    iconName,
+    label,
+  }: {
+    iconName: MaterialIconName;
+    label: string;
+  }) {
+    return (
+      <View key={label} style={styles.preferencePreviewChip}>
+        <MaterialIcons name={iconName} size={17} color="#8a6a26" />
+        <Text style={styles.preferencePreviewChipText}>{label}</Text>
+      </View>
+    );
+  }
+
+  function renderPreferenceSettingsRow({
+    iconName,
+    label,
+  }: {
+    iconName: MaterialIconName;
+    label: string;
+  }) {
+    return (
+      <View key={label} style={styles.preferenceSettingsRow}>
+        <View style={styles.preferenceSettingsLabelGroup}>
+          <MaterialIcons name={iconName} size={20} color="#555" />
+          <Text style={styles.preferenceSettingsLabel}>{label}</Text>
+        </View>
+        <Text style={styles.preferenceSettingsStatus}>Coming later</Text>
       </View>
     );
   }
@@ -594,81 +703,349 @@ export default function ProfileScreen() {
           );
         case "meals":
           return (
-            <View style={styles.dashboardSectionContent}>
-              {renderDashboardSectionCard({
+            <View style={styles.summarySectionContent}>
+              {renderDashboardSectionHeader({
+                eyebrow: "MEAL PLANNING",
                 iconName: "restaurant",
                 title: "Meals",
                 body:
-                  "Review meal recommendation placeholders and saved meal space for later planning.",
+                  "Review future recommendations and saved dining choices from one place.",
               })}
 
-              {renderDashboardSectionCard({
-                iconName: "restaurant-menu",
-                title: "Recommended Meals",
-                body:
-                  "Later, this area will use your visible targets to suggest Purdue dining combinations.",
-              })}
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="track-changes" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>{"Today's Targets"}</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Estimated meal targets for future planning
+                    </Text>
+                  </View>
+                </View>
 
-              {renderDashboardSectionCard({
-                iconName: "bookmark",
-                title: "Saved Meals",
-                body: "Meals you save will appear here later.",
-              })}
+                <View style={styles.mealTargetPreviewGrid}>
+                  {renderMealTargetPreviewItem({
+                    accentColor: "#f8d18c",
+                    iconName: "local-fire-department",
+                    label: "Calories",
+                    value: `${dashboardTarget.calories} kcal`,
+                  })}
+                  {renderMealTargetPreviewItem({
+                    accentColor: "#bbf7d0",
+                    iconName: "eco",
+                    label: "Protein",
+                    value: `${dashboardTarget.proteinGrams} g`,
+                  })}
+                  {renderMealTargetPreviewItem({
+                    accentColor: "#ddd6fe",
+                    iconName: "grain",
+                    label: "Carbs",
+                    value: `${dashboardTarget.carbsGrams} g`,
+                  })}
+                </View>
 
-              <View style={styles.dashboardActions}>
-                <Pressable style={[styles.primaryButton, styles.disabledPrimaryButton]} disabled>
-                  <Text style={styles.primaryButtonText}>Use These Targets</Text>
+                <Pressable style={[styles.summaryEditButton, styles.mealsDisabledButton]} disabled>
+                  <Text style={styles.mealsDisabledButtonText}>Use These Targets</Text>
+                  <MaterialIcons name="lock" size={18} color="#6b7280" />
                 </Pressable>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="restaurant-menu" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Recommended Combos</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Recommendations coming later
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.mealsEmptyPreview}>
+                  <MaterialIcons name="lock" size={24} color="#b08a3c" />
+                  <Text style={styles.mealsEmptyTitle}>
+                    Recommendations coming later
+                  </Text>
+                  <Text style={styles.mealsEmptyText}>
+                    Purdue dining combinations will appear here once profile targets can
+                    be applied to recommendations.
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="bookmark" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Saved Meals</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Saved meals coming later
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.dashboardPlaceholderBody}>
+                  Saved dining combinations will appear here after saved meals are
+                  added.
+                </Text>
               </View>
             </View>
           );
         case "preferences":
           return (
-            <View style={styles.dashboardSectionContent}>
-              {renderDashboardSectionCard({
+            <View style={styles.summarySectionContent}>
+              {renderDashboardSectionHeader({
+                eyebrow: "DINING SETUP",
                 iconName: "tune",
                 title: "Preferences",
                 body:
-                  "Manage dining choices, allergies, and dietary filters here as those tools are added.",
+                  "Manage the choices that will later shape your dining recommendations.",
               })}
 
-              {renderDashboardSectionCard({
-                iconName: "restaurant",
-                title: "Dining Preferences",
-                body:
-                  "Preferences and dining hall choices can be configured here later.",
-              })}
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="eco" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Dietary Preferences</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Options can be configured later
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.preferenceChipGrid}>
+                  {renderPreferencePreviewChip({
+                    iconName: "eco",
+                    label: "Vegetarian",
+                  })}
+                  {renderPreferencePreviewChip({
+                    iconName: "spa",
+                    label: "Vegan",
+                  })}
+                  {renderPreferencePreviewChip({
+                    iconName: "brightness-2",
+                    label: "Halal",
+                  })}
+                  {renderPreferencePreviewChip({
+                    iconName: "grain",
+                    label: "Gluten Free",
+                  })}
+                </View>
+                <Text style={styles.dashboardPlaceholderBody}>
+                  Dietary preference choices will shape recommendations once preference
+                  setup is added.
+                </Text>
+              </View>
 
-              {renderDashboardSectionCard({
-                iconName: "security",
-                title: "Allergens & Restrictions",
-                body:
-                  "Allergy and dietary filters can be reviewed and configured here later.",
-              })}
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="security" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Allergens & Restrictions</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Allergy and dietary filters can be reviewed here later
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.preferenceChipGrid}>
+                  {renderPreferencePreviewChip({
+                    iconName: "warning",
+                    label: "Peanuts",
+                  })}
+                  {renderPreferencePreviewChip({
+                    iconName: "park",
+                    label: "Tree Nuts",
+                  })}
+                  {renderPreferencePreviewChip({
+                    iconName: "local-drink",
+                    label: "Dairy",
+                  })}
+                  {renderPreferencePreviewChip({
+                    iconName: "egg",
+                    label: "Eggs",
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="place" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Favorite Dining Halls</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Favorite locations can be chosen later
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.preferenceChipGrid}>
+                  {["Wiley", "Ford", "Earhart", "Hillenbrand"].map((hall) =>
+                    renderPreferencePreviewChip({
+                      iconName: "restaurant",
+                      label: hall,
+                    })
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="fitness-center" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Meal Style Preferences</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Meal style choices can be configured later
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.preferenceChipGrid}>
+                  {renderPreferencePreviewChip({
+                    iconName: "fitness-center",
+                    label: "High Protein",
+                  })}
+                  {renderPreferencePreviewChip({
+                    iconName: "balance",
+                    label: "Balanced",
+                  })}
+                  {renderPreferencePreviewChip({
+                    iconName: "eco",
+                    label: "Low Carb",
+                  })}
+                  {renderPreferencePreviewChip({
+                    iconName: "sentiment-satisfied",
+                    label: "Comfort Food",
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="settings" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Profile & App Settings</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Settings previews are not connected yet
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.preferenceSettingsList}>
+                  {renderPreferenceSettingsRow({
+                    iconName: "person",
+                    label: "Personal Information",
+                  })}
+                  {renderPreferenceSettingsRow({
+                    iconName: "notifications",
+                    label: "Notifications",
+                  })}
+                  {renderPreferenceSettingsRow({
+                    iconName: "settings",
+                    label: "App Preferences",
+                  })}
+                </View>
+              </View>
             </View>
           );
         case "progress":
           return (
-            <View style={styles.dashboardSectionContent}>
-              {renderDashboardSectionCard({
+            <View style={styles.summarySectionContent}>
+              {renderDashboardSectionHeader({
+                eyebrow: "TRACKING",
                 iconName: "trending-up",
                 title: "Progress",
                 body:
-                  "Review nutrition progress and meal history here after meal logging exists.",
+                  "Meal history and nutrition trends will appear here once logging exists.",
               })}
 
-              {renderDashboardSectionCard({
-                iconName: "insert-chart",
-                title: "Progress Tracking",
-                body:
-                  "Progress will appear here after meal logging exists.",
-              })}
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="date-range" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Weekly Consistency</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Start logging meals to build your weekly consistency.
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.progressWeekPreview}>
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                    renderProgressDayPreview
+                  )}
+                </View>
+              </View>
 
-              {renderDashboardSectionCard({
-                iconName: "event-note",
-                title: "Meal History",
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="track-changes" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Meal Target Completion</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      No meal logs yet. Targets are ready when logging starts.
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.progressCompletionContent}>
+                  <View style={styles.progressTargetList}>
+                    {renderProgressTargetRow({
+                      iconName: "local-fire-department",
+                      label: "Calories",
+                      target: `${dashboardTarget.calories} kcal`,
+                    })}
+                    {renderProgressTargetRow({
+                      iconName: "eco",
+                      label: "Protein",
+                      target: `${dashboardTarget.proteinGrams} g`,
+                    })}
+                    {renderProgressTargetRow({
+                      iconName: "grain",
+                      label: "Carbs",
+                      target: `${dashboardTarget.carbsGrams} g`,
+                    })}
+                  </View>
+                  <View style={styles.progressEmptyRing}>
+                    <Text style={styles.progressEmptyRingText}>No logs yet</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <View style={styles.progressEmptyStateIcon}>
+                  <MaterialIcons name="event-note" size={34} color="#b08a3c" />
+                </View>
+                <Text style={styles.progressEmptyTitle}>No meals logged yet.</Text>
+                <Text style={styles.progressEmptyText}>
+                  Logged meals will appear here once meal logging is added.
+                </Text>
+                <Pressable style={[styles.summaryEditButton, styles.progressDisabledButton]} disabled>
+                  <MaterialIcons name="lock" size={18} color="#6b7280" />
+                  <Text style={styles.progressDisabledButtonText}>
+                    Meal logging coming later
+                  </Text>
+                </Pressable>
+              </View>
+
+              {renderDashboardPlaceholderCard({
                 body:
-                  "Meal history will appear here after logged meals are available.",
+                  "Insights will appear after the app has meal history to analyze.",
+                iconName: "tips-and-updates",
+                subtitle: "Future analysis",
+                title: "Insights",
               })}
             </View>
           );
@@ -1677,6 +2054,297 @@ const styles = StyleSheet.create({
 
   dashboardSectionTitleGroup: {
     flex: 1,
+  },
+
+  dashboardPlaceholderBody: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#555",
+  },
+
+  progressWeekPreview: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 6,
+  },
+
+  progressDayPreview: {
+    flex: 1,
+    alignItems: "center",
+    gap: 7,
+  },
+
+  progressDayCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#c7cbd1",
+    backgroundColor: "#f9fafb",
+  },
+
+  progressDayLabel: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "800",
+    color: "#6b7280",
+  },
+
+  progressCompletionContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+
+  progressTargetList: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#edf0f3",
+    overflow: "hidden",
+  },
+
+  progressTargetRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#edf0f3",
+  },
+
+  progressTargetLabelGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  progressTargetLabel: {
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "800",
+    color: "#555",
+  },
+
+  progressTargetValue: {
+    flex: 1,
+    textAlign: "right",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#111",
+  },
+
+  progressEmptyRing: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 10,
+    borderColor: "#e5e7eb",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  progressEmptyRingText: {
+    width: 62,
+    textAlign: "center",
+    fontSize: 12,
+    lineHeight: 15,
+    fontWeight: "900",
+    color: "#6b7280",
+  },
+
+  progressEmptyStateIcon: {
+    alignSelf: "center",
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: "#f8efd9",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+
+  progressEmptyTitle: {
+    textAlign: "center",
+    fontSize: 19,
+    lineHeight: 24,
+    fontWeight: "900",
+    color: "#111",
+    marginBottom: 7,
+  },
+
+  progressEmptyText: {
+    textAlign: "center",
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#555",
+    marginBottom: 16,
+  },
+
+  progressDisabledButton: {
+    backgroundColor: "#f3f4f6",
+  },
+
+  progressDisabledButtonText: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "900",
+    color: "#6b7280",
+  },
+
+  mealTargetPreviewGrid: {
+    gap: 10,
+    marginBottom: 16,
+  },
+
+  mealTargetPreviewItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#edf0f3",
+    backgroundColor: "#fffdf9",
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+
+  mealTargetIconBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  mealTargetTextGroup: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+
+  mealTargetLabel: {
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "800",
+    color: "#555",
+  },
+
+  mealTargetValue: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: "900",
+    color: "#111",
+  },
+
+  mealsDisabledButton: {
+    backgroundColor: "#f3f4f6",
+  },
+
+  mealsDisabledButtonText: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: "900",
+    color: "#6b7280",
+  },
+
+  mealsEmptyPreview: {
+    alignItems: "center",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#d9dde3",
+    backgroundColor: "#f9fafb",
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+  },
+
+  mealsEmptyTitle: {
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "900",
+    color: "#111",
+    marginTop: 10,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+
+  mealsEmptyText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#555",
+    textAlign: "center",
+  },
+
+  preferenceChipGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 14,
+  },
+
+  preferencePreviewChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#ead8b6",
+    backgroundColor: "#fffaf0",
+    paddingVertical: 10,
+    paddingHorizontal: 13,
+    opacity: 0.82,
+  },
+
+  preferencePreviewChipText: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#6b4f16",
+  },
+
+  preferenceSettingsList: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#edf0f3",
+    overflow: "hidden",
+  },
+
+  preferenceSettingsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#edf0f3",
+  },
+
+  preferenceSettingsLabelGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  preferenceSettingsLabel: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "800",
+    color: "#111",
+  },
+
+  preferenceSettingsStatus: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "800",
+    color: "#9ca3af",
   },
 
   dashboardFloatingNav: {
