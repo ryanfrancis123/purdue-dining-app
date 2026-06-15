@@ -1,7 +1,8 @@
 import { router } from "expo-router";
 import { BlurView } from "expo-blur";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -42,6 +43,7 @@ type ProfileStep =
   | "review";
 
 type DashboardSection = "summary" | "meals" | "preferences" | "progress";
+type MaterialIconName = ComponentProps<typeof MaterialIcons>["name"];
 
 const PROFILE_STEPS: ProfileStep[] = [
   "intro",
@@ -385,17 +387,73 @@ export default function ProfileScreen() {
   function renderDashboardSectionCard({
     body,
     children,
+    iconName,
     title,
   }: {
     body: string;
     children?: ReactNode;
+    iconName?: MaterialIconName;
     title: string;
   }) {
     return (
       <View style={styles.dashboardSectionCard}>
-        <Text style={styles.targetPreviewTitle}>{title}</Text>
-        <Text style={styles.targetPreviewText}>{body}</Text>
+        <View style={styles.dashboardSectionCardHeader}>
+          {iconName ? (
+            <View style={styles.dashboardSectionIconBadge}>
+              <MaterialIcons name={iconName} size={20} color="#b08a3c" />
+            </View>
+          ) : null}
+          <View style={styles.dashboardSectionTitleGroup}>
+            <Text style={styles.targetPreviewTitle}>{title}</Text>
+            <Text style={styles.targetPreviewText}>{body}</Text>
+          </View>
+        </View>
         {children}
+      </View>
+    );
+  }
+
+  function renderSummaryMetricTile({
+    accentColor,
+    iconName,
+    label,
+    unit,
+    value,
+  }: {
+    accentColor: string;
+    iconName: MaterialIconName;
+    label: string;
+    unit: string;
+    value: string;
+  }) {
+    return (
+      <View style={[styles.summaryMetricTile, { borderColor: accentColor }]}>
+        <Text style={styles.summaryMetricLabel}>{label}</Text>
+        <Text style={styles.summaryMetricValue}>{value}</Text>
+        <View style={styles.summaryMetricFooter}>
+          <Text style={styles.summaryMetricUnit}>{unit}</Text>
+          <View style={[styles.summaryMetricAccent, { backgroundColor: accentColor }]}>
+            <MaterialIcons name={iconName} size={17} color="#111" />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  function renderProfileSnapshotRow(
+    label: string,
+    value: string,
+    iconName: MaterialIconName
+  ) {
+    return (
+      <View key={label} style={styles.profileSnapshotRow}>
+        <View style={styles.profileSnapshotLabelGroup}>
+          <View style={styles.profileSnapshotDot}>
+            <MaterialIcons name={iconName} size={17} color="#555" />
+          </View>
+          <Text style={styles.profileSnapshotLabel}>{label}</Text>
+        </View>
+        <Text style={styles.profileSnapshotValue}>{value}</Text>
       </View>
     );
   }
@@ -420,89 +478,139 @@ export default function ProfileScreen() {
       switch (dashboardSection) {
         case "summary":
           return (
-            <View style={styles.dashboardSectionContent}>
-              <View style={[styles.stepCard, styles.dashboardHeaderCard]}>
-                <Text style={styles.eyebrow}>Profile saved</Text>
-                <Text style={styles.stepTitle}>Your Nutrition Hub</Text>
-                <Text style={styles.stepBody}>
-                  Review your estimated targets, preferences, and profile settings in
-                  one place.
-                </Text>
-              </View>
-
-              <View style={[styles.targetPreviewCard, styles.dashboardTargetCard]}>
-                <Text style={styles.targetPreviewTitle}>{"Today's Meal Targets"}</Text>
-                <Text style={styles.targetPreviewText}>
-                  Estimated from your saved profile. These targets are a starting
-                  point for future meal planning.
-                </Text>
-                <View style={styles.targetPreviewRow}>
-                  {renderTargetPreviewValue(
-                    "Calories",
-                    `${dashboardTarget.calories} kcal`
-                  )}
-                  {renderTargetPreviewValue(
-                    "Protein",
-                    `${dashboardTarget.proteinGrams}g`
-                  )}
-                  {renderTargetPreviewValue("Carbs", `${dashboardTarget.carbsGrams}g`)}
+            <View style={styles.summarySectionContent}>
+              <View style={styles.summaryHeroCard}>
+                <View style={styles.summaryHeroTextGroup}>
+                  <Text style={styles.summaryEyebrow}>Nutrition Hub</Text>
+                  <Text style={styles.summaryTitle}>Your Nutrition Hub</Text>
+                  <Text style={styles.summaryBody}>
+                    A snapshot of your meal targets and saved profile details to help
+                    guide smarter dining choices.
+                  </Text>
+                </View>
+                <View style={styles.summaryHeroBadge}>
+                  <MaterialIcons name="school" size={26} color="#111" />
                 </View>
               </View>
 
-              {renderDashboardSectionCard({
-                title: "Profile Settings",
-                body: "Review the details currently saved in your nutrition profile.",
-                children: (
-                  <>
-                    <View style={styles.reviewList}>
-                      {renderReviewRow(
-                        "Age",
-                        savedProfile.age === null ? "Not provided" : `${savedProfile.age}`
-                      )}
-                      {renderReviewRow("Height", formatSavedHeight(savedProfile.heightCm))}
-                      {renderReviewRow("Weight", formatSavedWeight(savedProfile.weightKg))}
-                      {renderReviewRow("Sex", formatProfileLabel(savedProfile.sex))}
-                      {renderReviewRow(
-                        "Activity",
-                        dashboardActivityOption
-                          ? dashboardActivityOption.label
-                          : formatProfileLabel(savedProfile.activityLevel)
-                      )}
-                      {renderReviewRow("Goal", formatProfileLabel(savedProfile.goal))}
-                    </View>
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="local-fire-department" size={25} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>{"Today's Meal Targets"}</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Estimated from your saved profile
+                    </Text>
+                  </View>
+                </View>
 
-                    <View style={styles.dashboardActions}>
-                      <Pressable
-                        style={styles.secondaryButton}
-                        onPress={() => {
-                          setIsEditingProfile(true);
-                          setCurrentStep("review");
-                        }}
-                      >
-                        <Text style={styles.secondaryButtonText}>Edit Profile</Text>
-                      </Pressable>
-                    </View>
-                  </>
-                ),
-              })}
+                <View style={styles.summaryMetricGrid}>
+                  {renderSummaryMetricTile({
+                    accentColor: "#f59e0b",
+                    iconName: "local-fire-department",
+                    label: "Calories",
+                    unit: "kcal",
+                    value: `${dashboardTarget.calories}`,
+                  })}
+                  {renderSummaryMetricTile({
+                    accentColor: "#22c55e",
+                    iconName: "eco",
+                    label: "Protein",
+                    unit: "g",
+                    value: `${dashboardTarget.proteinGrams}`,
+                  })}
+                  {renderSummaryMetricTile({
+                    accentColor: "#8b5cf6",
+                    iconName: "grain",
+                    label: "Carbs",
+                    unit: "g",
+                    value: `${dashboardTarget.carbsGrams}`,
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="person" size={25} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Profile Snapshot</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Based on your saved information
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.profileSnapshotList}>
+                  {renderProfileSnapshotRow(
+                    "Age",
+                    savedProfile.age === null ? "Not provided" : `${savedProfile.age}`,
+                    "event"
+                  )}
+                  {renderProfileSnapshotRow(
+                    "Height",
+                    formatSavedHeight(savedProfile.heightCm),
+                    "straighten"
+                  )}
+                  {renderProfileSnapshotRow(
+                    "Weight",
+                    formatSavedWeight(savedProfile.weightKg),
+                    "fitness-center"
+                  )}
+                  {renderProfileSnapshotRow(
+                    "Sex",
+                    formatProfileLabel(savedProfile.sex),
+                    "person"
+                  )}
+                  {renderProfileSnapshotRow(
+                    "Activity",
+                    dashboardActivityOption
+                      ? dashboardActivityOption.label
+                      : formatProfileLabel(savedProfile.activityLevel),
+                    "directions-run"
+                  )}
+                  {renderProfileSnapshotRow(
+                    "Goal",
+                    formatProfileLabel(savedProfile.goal),
+                    "flag"
+                  )}
+                </View>
+
+                <Pressable
+                  style={styles.summaryEditButton}
+                  onPress={() => {
+                    setIsEditingProfile(true);
+                    setCurrentStep("review");
+                  }}
+                >
+                  <MaterialIcons name="edit" size={19} color="#f2c766" />
+                  <Text style={styles.summaryEditButtonText}>Edit Profile</Text>
+                </Pressable>
+              </View>
             </View>
           );
         case "meals":
           return (
             <View style={styles.dashboardSectionContent}>
               {renderDashboardSectionCard({
+                iconName: "restaurant",
                 title: "Meals",
                 body:
                   "Review meal recommendation placeholders and saved meal space for later planning.",
               })}
 
               {renderDashboardSectionCard({
+                iconName: "restaurant-menu",
                 title: "Recommended Meals",
                 body:
                   "Later, this area will use your visible targets to suggest Purdue dining combinations.",
               })}
 
               {renderDashboardSectionCard({
+                iconName: "bookmark",
                 title: "Saved Meals",
                 body: "Meals you save will appear here later.",
               })}
@@ -518,18 +626,21 @@ export default function ProfileScreen() {
           return (
             <View style={styles.dashboardSectionContent}>
               {renderDashboardSectionCard({
+                iconName: "tune",
                 title: "Preferences",
                 body:
                   "Manage dining choices, allergies, and dietary filters here as those tools are added.",
               })}
 
               {renderDashboardSectionCard({
+                iconName: "restaurant",
                 title: "Dining Preferences",
                 body:
                   "Preferences and dining hall choices can be configured here later.",
               })}
 
               {renderDashboardSectionCard({
+                iconName: "security",
                 title: "Allergens & Restrictions",
                 body:
                   "Allergy and dietary filters can be reviewed and configured here later.",
@@ -540,18 +651,21 @@ export default function ProfileScreen() {
           return (
             <View style={styles.dashboardSectionContent}>
               {renderDashboardSectionCard({
+                iconName: "trending-up",
                 title: "Progress",
                 body:
                   "Review nutrition progress and meal history here after meal logging exists.",
               })}
 
               {renderDashboardSectionCard({
+                iconName: "insert-chart",
                 title: "Progress Tracking",
                 body:
                   "Progress will appear here after meal logging exists.",
               })}
 
               {renderDashboardSectionCard({
+                iconName: "event-note",
                 title: "Meal History",
                 body:
                   "Meal history will appear here after logged meals are available.",
@@ -567,7 +681,7 @@ export default function ProfileScreen() {
           contentContainerStyle={[
             styles.stepScrollContent,
             styles.dashboardScrollContent,
-            { paddingBottom: insets.bottom + 168 },
+            { paddingBottom: insets.bottom + 208 },
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -867,7 +981,7 @@ export default function ProfileScreen() {
       <View
         style={[
           styles.container,
-          { paddingTop: insets.top + (shouldShowDashboard ? 24 : 76) },
+          { paddingTop: insets.top + (shouldShowDashboard ? 8 : 76) },
         ]}
       >
         {shouldShowDashboard ? (
@@ -1305,6 +1419,235 @@ const styles = StyleSheet.create({
     gap: 14,
   },
 
+  summarySectionContent: {
+    gap: 14,
+  },
+
+  summaryHeroCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 16,
+    paddingTop: 4,
+    paddingHorizontal: 2,
+    paddingBottom: 6,
+  },
+
+  summaryHeroTextGroup: {
+    flex: 1,
+  },
+
+  summaryHeroBadge: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 1,
+    borderColor: "rgba(176, 138, 60, 0.36)",
+    backgroundColor: "#f8efd9",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#111",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 3,
+  },
+
+  summaryEyebrow: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "900",
+    color: "#b08a3c",
+    letterSpacing: 1.6,
+    marginBottom: 10,
+    textTransform: "uppercase",
+  },
+
+  summaryTitle: {
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: "900",
+    color: "#111",
+    marginBottom: 10,
+  },
+
+  summaryBody: {
+    fontSize: 16,
+    lineHeight: 23,
+    color: "#555",
+  },
+
+  summaryCard: {
+    borderRadius: 22,
+    padding: 18,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#edf0f3",
+    shadowColor: "#111",
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 4,
+  },
+
+  summaryCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 14,
+  },
+
+  summaryCardBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#f8efd9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  summaryCardBadgeText: {
+    fontSize: 18,
+    lineHeight: 22,
+    fontWeight: "900",
+    color: "#b08a3c",
+  },
+
+  summaryCardTitleGroup: {
+    flex: 1,
+  },
+
+  summaryCardTitle: {
+    fontSize: 20,
+    lineHeight: 25,
+    fontWeight: "900",
+    color: "#111",
+  },
+
+  summaryCardSubtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#666",
+    marginTop: 3,
+  },
+
+  summaryMetricGrid: {
+    flexDirection: "row",
+    gap: 9,
+  },
+
+  summaryMetricTile: {
+    flex: 1,
+    minHeight: 112,
+    borderRadius: 16,
+    borderWidth: 1,
+    backgroundColor: "#fffdf9",
+    padding: 12,
+    justifyContent: "space-between",
+  },
+
+  summaryMetricLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#6b7280",
+  },
+
+  summaryMetricValue: {
+    fontSize: 27,
+    lineHeight: 32,
+    fontWeight: "900",
+    color: "#111",
+  },
+
+  summaryMetricFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  summaryMetricUnit: {
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "700",
+    color: "#555",
+  },
+
+  summaryMetricAccent: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    opacity: 0.28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  profileSnapshotList: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#edf0f3",
+    overflow: "hidden",
+    marginBottom: 16,
+  },
+
+  profileSnapshotRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#edf0f3",
+  },
+
+  profileSnapshotLabelGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  profileSnapshotDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#f3f4f6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  profileSnapshotLabel: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "700",
+    color: "#666",
+  },
+
+  profileSnapshotValue: {
+    flex: 1,
+    textAlign: "right",
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "900",
+    color: "#111",
+  },
+
+  summaryEditButton: {
+    borderRadius: 16,
+    backgroundColor: "#111",
+    paddingVertical: 15,
+    flexDirection: "row",
+    gap: 9,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  summaryEditButtonText: {
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "900",
+    color: "#f2c766",
+  },
+
   dashboardTargetCard: {
     marginTop: 0,
   },
@@ -1317,27 +1660,47 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 
+  dashboardSectionCardHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+
+  dashboardSectionIconBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#f8efd9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  dashboardSectionTitleGroup: {
+    flex: 1,
+  },
+
   dashboardFloatingNav: {
     position: "absolute",
     left: 20,
     right: 20,
-    borderRadius: 24,
+    zIndex: 20,
+    borderRadius: 28,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.72)",
-    backgroundColor: "rgba(255, 255, 255, 0.62)",
+    borderColor: "rgba(255, 255, 255, 0.9)",
+    backgroundColor: "rgba(255, 255, 255, 0.34)",
     shadowColor: "#111",
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 12,
   },
 
   dashboardFloatingNavBlur: {
     flexDirection: "row",
     gap: 4,
-    padding: 6,
-    backgroundColor: "rgba(255, 255, 255, 0.32)",
+    padding: 7,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
 
   dashboardFloatingNavButton: {
@@ -1350,6 +1713,10 @@ const styles = StyleSheet.create({
 
   dashboardFloatingNavButtonActive: {
     backgroundColor: "#111",
+    shadowColor: "#111",
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
   },
 
   dashboardFloatingNavText: {
