@@ -10,12 +10,14 @@ import {
   Text,
   View,
 } from "react-native";
+import type { DimensionValue } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   NUTRITION_GOAL_OPTIONS,
   SEX_OPTIONS,
 } from "../src/constants/profileOptions";
+import { estimateMealMacroTarget } from "../src/utils/profileTargets";
 import type { ActivityLevel, NutritionGoal, NutritionProfile, Sex } from "../src/types/profile";
 
 const TOTAL_STEPS = 8;
@@ -123,7 +125,7 @@ export default function ProfileScreen() {
 
   const currentStep = PROFILE_STEPS[currentStepIndex];
   const isReviewStep = currentStep === "review";
-  const progressPercent = `${((currentStepIndex + 1) / TOTAL_STEPS) * 100}%`;
+  const progressPercent: DimensionValue = `${((currentStepIndex + 1) / TOTAL_STEPS) * 100}%`;
 
   const canContinue =
     (currentStep !== "sex" || sex !== null) &&
@@ -198,6 +200,25 @@ export default function ProfileScreen() {
   const selectedActivityOption = ACTIVITY_DISPLAY_OPTIONS.find(
     (option) => option.value === activityLevel
   );
+  const profilePreview: NutritionProfile | null =
+    age !== null &&
+    heightCm !== null &&
+    weightKg !== null &&
+    sex !== null &&
+    activityLevel !== null &&
+    goal !== null
+      ? {
+          age,
+          heightCm,
+          weightKg,
+          sex,
+          activityLevel,
+          goal,
+        }
+      : null;
+  const estimatedTarget = profilePreview
+    ? estimateMealMacroTarget(profilePreview)
+    : null;
 
   function renderStepContent() {
     switch (currentStep) {
@@ -317,6 +338,24 @@ export default function ProfileScreen() {
               )}
               {renderReviewRow("Goal", goal ? formatProfileLabel(goal) : "Not selected")}
             </View>
+
+            {estimatedTarget ? (
+              <View style={styles.targetPreviewCard}>
+                <Text style={styles.targetPreviewTitle}>Estimated meal targets</Text>
+                <Text style={styles.targetPreviewText}>
+                  Based on your profile choices. You can review and adjust these before
+                  using them.
+                </Text>
+                <View style={styles.targetPreviewRow}>
+                  {renderTargetPreviewValue("Calories", `${estimatedTarget.calories} kcal`)}
+                  {renderTargetPreviewValue(
+                    "Protein",
+                    `${estimatedTarget.proteinGrams}g`
+                  )}
+                  {renderTargetPreviewValue("Carbs", `${estimatedTarget.carbsGrams}g`)}
+                </View>
+              </View>
+            ) : null}
 
             {savedProfile ? (
               <View style={styles.savedNotice}>
@@ -532,6 +571,15 @@ export default function ProfileScreen() {
       <View key={label} style={styles.reviewRow}>
         <Text style={styles.reviewLabel}>{label}</Text>
         <Text style={styles.reviewValue}>{value}</Text>
+      </View>
+    );
+  }
+
+  function renderTargetPreviewValue(label: string, value: string) {
+    return (
+      <View key={label} style={styles.targetPreviewValue}>
+        <Text style={styles.targetPreviewLabel}>{label}</Text>
+        <Text style={styles.targetPreviewNumber}>{value}</Text>
       </View>
     );
   }
@@ -911,6 +959,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
     lineHeight: 20,
+  },
+
+  targetPreviewCard: {
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: "#f3f4f6",
+    marginTop: 18,
+  },
+
+  targetPreviewTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#111",
+    marginBottom: 6,
+  },
+
+  targetPreviewText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#555",
+    marginBottom: 14,
+  },
+
+  targetPreviewRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+
+  targetPreviewValue: {
+    flex: 1,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: "center",
+  },
+
+  targetPreviewLabel: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "800",
+    color: "#6b7280",
+    marginBottom: 4,
+  },
+
+  targetPreviewNumber: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: "800",
+    color: "#111",
   },
 
   bottomBar: {
