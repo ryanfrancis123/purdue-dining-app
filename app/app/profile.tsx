@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { BlurView } from "expo-blur";
 import { useState } from "react";
+import type { ReactNode } from "react";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -39,6 +40,8 @@ type ProfileStep =
   | "activity"
   | "goal"
   | "review";
+
+type DashboardSection = "summary" | "meals" | "preferences" | "progress";
 
 const PROFILE_STEPS: ProfileStep[] = [
   "intro",
@@ -123,6 +126,8 @@ export default function ProfileScreen() {
 
   const [savedProfile, setSavedProfile] = useState<NutritionProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [dashboardSection, setDashboardSection] =
+    useState<DashboardSection>("summary");
 
   const currentStep = PROFILE_STEPS[currentStepIndex];
   const isReviewStep = currentStep === "review";
@@ -133,6 +138,10 @@ export default function ProfileScreen() {
     (currentStep !== "sex" || sex !== null) &&
     (currentStep !== "activity" || activityLevel !== null) &&
     (currentStep !== "goal" || goal !== null);
+
+  const setCurrentStep = (step: ProfileStep) => {
+    setCurrentStepIndex(PROFILE_STEPS.indexOf(step));
+  };
 
   const handlePreviousStep = () => {
     if (currentStepIndex > 0) {
@@ -373,80 +382,231 @@ export default function ProfileScreen() {
     }
   }
 
+  function renderDashboardSectionCard({
+    body,
+    children,
+    title,
+  }: {
+    body: string;
+    children?: ReactNode;
+    title: string;
+  }) {
+    return (
+      <View style={styles.dashboardSectionCard}>
+        <Text style={styles.targetPreviewTitle}>{title}</Text>
+        <Text style={styles.targetPreviewText}>{body}</Text>
+        {children}
+      </View>
+    );
+  }
+
   function renderProfileDashboard() {
     if (savedProfile === null) {
       return null;
     }
 
+    const dashboardSections: { label: string; value: DashboardSection }[] = [
+      { label: "Summary", value: "summary" },
+      { label: "Meals", value: "meals" },
+      { label: "Preferences", value: "preferences" },
+      { label: "Progress", value: "progress" },
+    ];
     const dashboardTarget = estimateMealMacroTarget(savedProfile);
     const dashboardActivityOption = ACTIVITY_DISPLAY_OPTIONS.find(
       (option) => option.value === savedProfile.activityLevel
     );
 
+    const renderDashboardSectionContent = () => {
+      switch (dashboardSection) {
+        case "summary":
+          return (
+            <View style={styles.dashboardSectionContent}>
+              <View style={[styles.stepCard, styles.dashboardHeaderCard]}>
+                <Text style={styles.eyebrow}>Profile saved</Text>
+                <Text style={styles.stepTitle}>Your Nutrition Hub</Text>
+                <Text style={styles.stepBody}>
+                  Review your estimated targets, preferences, and profile settings in
+                  one place.
+                </Text>
+              </View>
+
+              <View style={[styles.targetPreviewCard, styles.dashboardTargetCard]}>
+                <Text style={styles.targetPreviewTitle}>{"Today's Meal Targets"}</Text>
+                <Text style={styles.targetPreviewText}>
+                  Estimated from your saved profile. These targets are a starting
+                  point for future meal planning.
+                </Text>
+                <View style={styles.targetPreviewRow}>
+                  {renderTargetPreviewValue(
+                    "Calories",
+                    `${dashboardTarget.calories} kcal`
+                  )}
+                  {renderTargetPreviewValue(
+                    "Protein",
+                    `${dashboardTarget.proteinGrams}g`
+                  )}
+                  {renderTargetPreviewValue("Carbs", `${dashboardTarget.carbsGrams}g`)}
+                </View>
+              </View>
+
+              {renderDashboardSectionCard({
+                title: "Profile Settings",
+                body: "Review the details currently saved in your nutrition profile.",
+                children: (
+                  <>
+                    <View style={styles.reviewList}>
+                      {renderReviewRow(
+                        "Age",
+                        savedProfile.age === null ? "Not provided" : `${savedProfile.age}`
+                      )}
+                      {renderReviewRow("Height", formatSavedHeight(savedProfile.heightCm))}
+                      {renderReviewRow("Weight", formatSavedWeight(savedProfile.weightKg))}
+                      {renderReviewRow("Sex", formatProfileLabel(savedProfile.sex))}
+                      {renderReviewRow(
+                        "Activity",
+                        dashboardActivityOption
+                          ? dashboardActivityOption.label
+                          : formatProfileLabel(savedProfile.activityLevel)
+                      )}
+                      {renderReviewRow("Goal", formatProfileLabel(savedProfile.goal))}
+                    </View>
+
+                    <View style={styles.dashboardActions}>
+                      <Pressable
+                        style={styles.secondaryButton}
+                        onPress={() => {
+                          setIsEditingProfile(true);
+                          setCurrentStep("review");
+                        }}
+                      >
+                        <Text style={styles.secondaryButtonText}>Edit Profile</Text>
+                      </Pressable>
+                    </View>
+                  </>
+                ),
+              })}
+            </View>
+          );
+        case "meals":
+          return (
+            <View style={styles.dashboardSectionContent}>
+              {renderDashboardSectionCard({
+                title: "Meals",
+                body:
+                  "Review meal recommendation placeholders and saved meal space for later planning.",
+              })}
+
+              {renderDashboardSectionCard({
+                title: "Recommended Meals",
+                body:
+                  "Later, this area will use your visible targets to suggest Purdue dining combinations.",
+              })}
+
+              {renderDashboardSectionCard({
+                title: "Saved Meals",
+                body: "Meals you save will appear here later.",
+              })}
+
+              <View style={styles.dashboardActions}>
+                <Pressable style={[styles.primaryButton, styles.disabledPrimaryButton]} disabled>
+                  <Text style={styles.primaryButtonText}>Use These Targets</Text>
+                </Pressable>
+              </View>
+            </View>
+          );
+        case "preferences":
+          return (
+            <View style={styles.dashboardSectionContent}>
+              {renderDashboardSectionCard({
+                title: "Preferences",
+                body:
+                  "Manage dining choices, allergies, and dietary filters here as those tools are added.",
+              })}
+
+              {renderDashboardSectionCard({
+                title: "Dining Preferences",
+                body:
+                  "Preferences and dining hall choices can be configured here later.",
+              })}
+
+              {renderDashboardSectionCard({
+                title: "Allergens & Restrictions",
+                body:
+                  "Allergy and dietary filters can be reviewed and configured here later.",
+              })}
+            </View>
+          );
+        case "progress":
+          return (
+            <View style={styles.dashboardSectionContent}>
+              {renderDashboardSectionCard({
+                title: "Progress",
+                body:
+                  "Review nutrition progress and meal history here after meal logging exists.",
+              })}
+
+              {renderDashboardSectionCard({
+                title: "Progress Tracking",
+                body:
+                  "Progress will appear here after meal logging exists.",
+              })}
+
+              {renderDashboardSectionCard({
+                title: "Meal History",
+                body:
+                  "Meal history will appear here after logged meals are available.",
+              })}
+            </View>
+          );
+      }
+    };
+
     return (
-      <ScrollView
-        contentContainerStyle={[
-          styles.stepScrollContent,
-          { paddingBottom: insets.bottom + 32 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.stepCard}>
-          <Text style={styles.eyebrow}>Profile saved</Text>
-          <Text style={styles.stepTitle}>Your Nutrition Profile</Text>
-          <Text style={styles.stepBody}>
-            Keep these estimates visible before using them for recommendations.
-          </Text>
+      <>
+        <ScrollView
+          contentContainerStyle={[
+            styles.stepScrollContent,
+            styles.dashboardScrollContent,
+            { paddingBottom: insets.bottom + 168 },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {renderDashboardSectionContent()}
+        </ScrollView>
 
-          <View style={styles.targetPreviewCard}>
-            <Text style={styles.targetPreviewTitle}>Estimated meal targets</Text>
-            <Text style={styles.targetPreviewText}>
-              Based on your profile choices. You can review and adjust these before
-              using them.
-            </Text>
-            <View style={styles.targetPreviewRow}>
-              {renderTargetPreviewValue("Calories", `${dashboardTarget.calories} kcal`)}
-              {renderTargetPreviewValue("Protein", `${dashboardTarget.proteinGrams}g`)}
-              {renderTargetPreviewValue("Carbs", `${dashboardTarget.carbsGrams}g`)}
-            </View>
-          </View>
+        <View
+          style={[
+            styles.dashboardFloatingNav,
+            { bottom: insets.bottom + 16 },
+          ]}
+        >
+          <BlurView intensity={65} tint="light" style={styles.dashboardFloatingNavBlur}>
+            {dashboardSections.map((section) => {
+              const isActive = dashboardSection === section.value;
 
-          <View style={styles.dashboardSection}>
-            <Text style={styles.targetPreviewTitle}>Profile summary</Text>
-            <View style={styles.reviewList}>
-              {renderReviewRow(
-                "Age",
-                savedProfile.age === null ? "Not provided" : `${savedProfile.age}`
-              )}
-              {renderReviewRow("Height", formatSavedHeight(savedProfile.heightCm))}
-              {renderReviewRow("Weight", formatSavedWeight(savedProfile.weightKg))}
-              {renderReviewRow("Sex", formatProfileLabel(savedProfile.sex))}
-              {renderReviewRow(
-                "Activity",
-                dashboardActivityOption
-                  ? dashboardActivityOption.label
-                  : formatProfileLabel(savedProfile.activityLevel)
-              )}
-              {renderReviewRow("Goal", formatProfileLabel(savedProfile.goal))}
-            </View>
-          </View>
-
-          <View style={styles.dashboardActions}>
-            <Pressable style={[styles.primaryButton, styles.disabledPrimaryButton]} disabled>
-              <Text style={styles.primaryButtonText}>Use These Targets</Text>
-            </Pressable>
-            <Pressable
-              style={styles.secondaryButton}
-              onPress={() => {
-                setIsEditingProfile(true);
-                setCurrentStepIndex(PROFILE_STEPS.indexOf("review"));
-              }}
-            >
-              <Text style={styles.secondaryButtonText}>Edit Profile</Text>
-            </Pressable>
-          </View>
+              return (
+                <Pressable
+                  key={section.value}
+                  style={[
+                    styles.dashboardFloatingNavButton,
+                    isActive && styles.dashboardFloatingNavButtonActive,
+                  ]}
+                  onPress={() => setDashboardSection(section.value)}
+                >
+                  <Text
+                    style={[
+                      styles.dashboardFloatingNavText,
+                      isActive && styles.dashboardFloatingNavTextActive,
+                    ]}
+                  >
+                    {section.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </BlurView>
         </View>
-      </ScrollView>
+      </>
     );
   }
 
@@ -691,18 +851,25 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.safeArea}>
-      <Pressable
-        style={[styles.floatingBackButton, { top: insets.top + 8 }]}
-        onPress={() => router.back()}
-        accessibilityRole="button"
-        accessibilityLabel="Go back"
-      >
-        <BlurView intensity={55} tint="light" style={styles.backButtonBlur}>
+      {shouldShowDashboard ? null : (
+        <Pressable
+          style={[styles.floatingBackButton, { top: insets.top + 8 }]}
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <BlurView intensity={55} tint="light" style={styles.backButtonBlur}>
           <Text style={styles.floatingBackButtonText}>‹</Text>
-        </BlurView>
-      </Pressable>
+          </BlurView>
+        </Pressable>
+      )}
 
-      <View style={[styles.container, { paddingTop: insets.top + 76 }]}>
+      <View
+        style={[
+          styles.container,
+          { paddingTop: insets.top + (shouldShowDashboard ? 24 : 76) },
+        ]}
+      >
         {shouldShowDashboard ? (
           renderProfileDashboard()
         ) : (
@@ -1124,6 +1291,76 @@ const styles = StyleSheet.create({
 
   dashboardSection: {
     marginTop: 18,
+  },
+
+  dashboardScrollContent: {
+    gap: 14,
+  },
+
+  dashboardHeaderCard: {
+    minHeight: 0,
+  },
+
+  dashboardSectionContent: {
+    gap: 14,
+  },
+
+  dashboardTargetCard: {
+    marginTop: 0,
+  },
+
+  dashboardSectionCard: {
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#fff",
+  },
+
+  dashboardFloatingNav: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.72)",
+    backgroundColor: "rgba(255, 255, 255, 0.62)",
+    shadowColor: "#111",
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+  },
+
+  dashboardFloatingNavBlur: {
+    flexDirection: "row",
+    gap: 4,
+    padding: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.32)",
+  },
+
+  dashboardFloatingNavButton: {
+    flex: 1,
+    borderRadius: 18,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  dashboardFloatingNavButtonActive: {
+    backgroundColor: "#111",
+  },
+
+  dashboardFloatingNavText: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "800",
+    color: "#6b7280",
+  },
+
+  dashboardFloatingNavTextActive: {
+    color: "#fff",
   },
 
   dashboardActions: {
