@@ -1,14 +1,89 @@
 import { router } from "expo-router";
 import { BlurView } from "expo-blur";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
-  ACTIVITY_LEVEL_OPTIONS,
   NUTRITION_GOAL_OPTIONS,
+  SEX_OPTIONS,
 } from "../src/constants/profileOptions";
 import type { ActivityLevel, NutritionGoal, NutritionProfile, Sex } from "../src/types/profile";
+
+const TOTAL_STEPS = 8;
+const CM_PER_INCH = 2.54;
+const KG_PER_POUND = 0.45359237;
+const AGE_MIN = 16;
+const AGE_MAX = 80;
+const AGE_DEFAULT = 18;
+const WHEEL_ITEM_HEIGHT = 52;
+
+type UnitSystem = "us" | "metric";
+
+type ProfileStep =
+  | "intro"
+  | "age"
+  | "height"
+  | "weight"
+  | "sex"
+  | "activity"
+  | "goal"
+  | "review";
+
+const PROFILE_STEPS: ProfileStep[] = [
+  "intro",
+  "age",
+  "height",
+  "weight",
+  "sex",
+  "activity",
+  "goal",
+  "review",
+];
+
+const ACTIVITY_DISPLAY_OPTIONS: {
+  label: string;
+  value: ActivityLevel;
+  description: string;
+}[] = [
+  {
+    label: "Low Activity",
+    value: "sedentary",
+    description: "Little exercise besides walking to class",
+  },
+  {
+    label: "Light Activity",
+    value: "light",
+    description: "Exercise or sports 1 to 2 days per week",
+  },
+  {
+    label: "Moderate Activity",
+    value: "moderate",
+    description: "Exercise or sports 3 to 4 days per week",
+  },
+  {
+    label: "High Activity",
+    value: "active",
+    description: "Hard training 5 to 6 days per week",
+  },
+  {
+    label: "Very High Activity",
+    value: "very_active",
+    description: "Intense training most days",
+  },
+];
+
+function buildRange(start: number, end: number) {
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+}
 
 function formatProfileLabel(value: string) {
   return value
@@ -16,29 +91,70 @@ function formatProfileLabel(value: string) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-const SEX_OPTIONS: { label: string; value: Sex }[] = [
-  { label: "Male", value: "male" },
-  { label: "Female", value: "female" },
-  { label: "Prefer not to say", value: "prefer_not_to_say" },
-];
+function centimetersToFeetInches(heightCm: number) {
+  const totalInches = Math.max(0, Math.round(heightCm / CM_PER_INCH));
+  const feet = Math.floor(totalInches / 12);
+  const inches = totalInches % 12;
+
+  return { feet, inches };
+}
+
+function kilogramsToPounds(weightKg: number) {
+  return Math.round(weightKg / KG_PER_POUND);
+}
+
+function poundsToKilograms(weightLb: number) {
+  return Math.round(weightLb * KG_PER_POUND);
+}
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const [ageInput, setAgeInput] = useState("");
-  const [heightInput, setHeightInput] = useState("");
-  const [weightInput, setWeightInput] = useState("");
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [age, setAge] = useState<number | null>(AGE_DEFAULT);
+  const [heightCm, setHeightCm] = useState<number | null>(null);
+  const [weightKg, setWeightKg] = useState<number | null>(null);
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>("us");
 
-  const [sex, setSex] = useState<Sex>("prefer_not_to_say");
-  const [activityLevel, setActivityLevel] = useState<ActivityLevel>("moderate");
-  const [goal, setGoal] = useState<NutritionGoal>("maintain");
+  const [sex, setSex] = useState<Sex | null>(null);
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel | null>(null);
+  const [goal, setGoal] = useState<NutritionGoal | null>(null);
 
   const [savedProfile, setSavedProfile] = useState<NutritionProfile | null>(null);
 
+  const currentStep = PROFILE_STEPS[currentStepIndex];
+  const isReviewStep = currentStep === "review";
+  const progressPercent = `${((currentStepIndex + 1) / TOTAL_STEPS) * 100}%`;
+
+  const canContinue =
+    (currentStep !== "sex" || sex !== null) &&
+    (currentStep !== "activity" || activityLevel !== null) &&
+    (currentStep !== "goal" || goal !== null);
+
+  const handlePreviousStep = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex(currentStepIndex - 1);
+    }
+  };
+
+  const handleNextStep = () => {
+    if (!canContinue) {
+      return;
+    }
+
+    if (currentStepIndex < PROFILE_STEPS.length - 1) {
+      setCurrentStepIndex(currentStepIndex + 1);
+    }
+  };
+
   const handleSaveProfile = () => {
+    if (sex === null || activityLevel === null || goal === null) {
+      return;
+    }
+
     const profile: NutritionProfile = {
-      age: ageInput.trim() === "" ? null : Number(ageInput),
-      heightCm: heightInput.trim() === "" ? null : Number(heightInput),
-      weightKg: weightInput.trim() === "" ? null : Number(weightInput),
+      age,
+      heightCm,
+      weightKg,
       sex,
       activityLevel,
       goal,
@@ -46,6 +162,379 @@ export default function ProfileScreen() {
 
     setSavedProfile(profile);
   };
+
+  const setUsHeight = (part: "feet" | "inches", value: number) => {
+    const currentHeight = centimetersToFeetInches(heightCm ?? 173);
+    const feet = part === "feet" ? value : currentHeight.feet;
+    const inches = part === "inches" ? value : currentHeight.inches;
+    setHeightCm(Math.round((feet * 12 + inches) * CM_PER_INCH));
+  };
+
+  const formatHeightForReview = () => {
+    if (heightCm === null) {
+      return "Not provided";
+    }
+
+    if (unitSystem === "metric") {
+      return `${heightCm} cm`;
+    }
+
+    const { feet, inches } = centimetersToFeetInches(heightCm);
+    return `${feet} ft ${inches} in`;
+  };
+
+  const formatWeightForReview = () => {
+    if (weightKg === null) {
+      return "Not provided";
+    }
+
+    if (unitSystem === "metric") {
+      return `${weightKg} kg`;
+    }
+
+    return `${kilogramsToPounds(weightKg)} lb`;
+  };
+
+  const selectedActivityOption = ACTIVITY_DISPLAY_OPTIONS.find(
+    (option) => option.value === activityLevel
+  );
+
+  function renderStepContent() {
+    switch (currentStep) {
+      case "intro":
+        return (
+          <View style={styles.stepCard}>
+            <Text style={styles.eyebrow}>Optional setup</Text>
+            <Text style={styles.stepTitle}>Build a profile for better meal ideas.</Text>
+            <Text style={styles.stepBody}>
+              Your nutrition profile is optional. It helps prepare more personalized
+              meal suggestions while keeping Purdue Dining easy to use without one.
+            </Text>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoTitle}>You are in control</Text>
+              <Text style={styles.infoText}>
+                Answer what feels useful, skip what you want, and come back anytime.
+              </Text>
+            </View>
+          </View>
+        );
+      case "age":
+        return (
+          <View style={styles.stepCard}>
+            <Text style={styles.eyebrow}>About you</Text>
+            <Text style={styles.stepTitle}>How old are you?</Text>
+            {renderAgeWheel()}
+          </View>
+        );
+      case "height":
+        return (
+          <View style={styles.stepCard}>
+            <Text style={styles.eyebrow}>Body details</Text>
+            <Text style={styles.stepTitle}>What is your height?</Text>
+            {renderUnitToggle()}
+            {unitSystem === "metric" ? renderMetricHeightControl() : renderUsHeightControl()}
+          </View>
+        );
+      case "weight":
+        return (
+          <View style={styles.stepCard}>
+            <Text style={styles.eyebrow}>Body details</Text>
+            <Text style={styles.stepTitle}>What is your weight?</Text>
+            {renderUnitToggle()}
+            {unitSystem === "metric" ? renderMetricWeightControl() : renderUsWeightControl()}
+          </View>
+        );
+      case "sex":
+        return (
+          <View style={styles.stepCard}>
+            <Text style={styles.eyebrow}>Profile detail</Text>
+            <Text style={styles.stepTitle}>Which option should we use?</Text>
+            <Text style={styles.stepBody}>
+              Choose one to continue. Prefer not to say is always available.
+            </Text>
+            <View style={styles.optionStack}>
+              {SEX_OPTIONS.map((option) => renderOptionCard({
+                isSelected: sex === option.value,
+                label: option.label,
+                onPress: () => setSex(option.value),
+              }))}
+            </View>
+          </View>
+        );
+      case "activity":
+        return (
+          <View style={styles.stepCard}>
+            <Text style={styles.eyebrow}>Daily rhythm</Text>
+            <Text style={styles.stepTitle}>How active are you most weeks?</Text>
+            <Text style={styles.stepBody}>
+              Pick the option that sounds closest to your normal routine.
+            </Text>
+            <View style={styles.optionStack}>
+              {ACTIVITY_DISPLAY_OPTIONS.map((option) => renderOptionCard({
+                description: option.description,
+                isSelected: activityLevel === option.value,
+                label: option.label,
+                onPress: () => setActivityLevel(option.value),
+              }))}
+            </View>
+          </View>
+        );
+      case "goal":
+        return (
+          <View style={styles.stepCard}>
+            <Text style={styles.eyebrow}>Nutrition direction</Text>
+            <Text style={styles.stepTitle}>What is your main goal?</Text>
+            <Text style={styles.stepBody}>
+              This helps shape future meal target suggestions.
+            </Text>
+            <View style={styles.optionStack}>
+              {NUTRITION_GOAL_OPTIONS.map((option) => renderOptionCard({
+                description: option.description,
+                isSelected: goal === option.value,
+                label: option.label,
+                onPress: () => setGoal(option.value),
+              }))}
+            </View>
+          </View>
+        );
+      case "review":
+        return (
+          <View style={styles.stepCard}>
+            <Text style={styles.eyebrow}>Review</Text>
+            <Text style={styles.stepTitle}>Ready to save this profile?</Text>
+            <Text style={styles.stepBody}>
+              Review your answers before saving this profile for now.
+            </Text>
+
+            <View style={styles.reviewList}>
+              {renderReviewRow("Age", age === null ? "Not provided" : `${age}`)}
+              {renderReviewRow("Height", formatHeightForReview())}
+              {renderReviewRow("Weight", formatWeightForReview())}
+              {renderReviewRow("Sex", sex ? formatProfileLabel(sex) : "Not selected")}
+              {renderReviewRow(
+                "Activity",
+                selectedActivityOption ? selectedActivityOption.label : "Not selected"
+              )}
+              {renderReviewRow("Goal", goal ? formatProfileLabel(goal) : "Not selected")}
+            </View>
+
+            {savedProfile ? (
+              <View style={styles.savedNotice}>
+                <Text style={styles.savedNoticeTitle}>Profile saved</Text>
+                <Text style={styles.savedNoticeText}>
+                  You can keep using Purdue Dining with or without these answers.
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        );
+    }
+  }
+
+  function renderAgeWheel() {
+    return renderNumberWheel({
+      label: "Age",
+      options: buildRange(AGE_MIN, AGE_MAX),
+      selectedValue: age,
+      defaultValue: AGE_DEFAULT,
+      onSelect: setAge,
+      unit: "years",
+    });
+  }
+
+  function renderUnitToggle() {
+    return (
+      <View style={styles.unitToggle}>
+        {(["us", "metric"] as UnitSystem[]).map((unit) => {
+          const isSelected = unitSystem === unit;
+
+          return (
+            <Pressable
+              key={unit}
+              style={[styles.unitToggleButton, isSelected && styles.selectedUnitToggle]}
+              onPress={() => setUnitSystem(unit)}
+            >
+              <Text
+                style={[
+                  styles.unitToggleText,
+                  isSelected && styles.selectedUnitToggleText,
+                ]}
+              >
+                {unit === "us" ? "US" : "Metric"}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    );
+  }
+
+  function renderMetricHeightControl() {
+    return renderNumberWheel({
+      label: "Centimeters",
+      options: buildRange(120, 230),
+      selectedValue: heightCm,
+      defaultValue: 170,
+      onSelect: setHeightCm,
+      unit: "cm",
+    });
+  }
+
+  function renderUsHeightControl() {
+    const { feet, inches } = centimetersToFeetInches(heightCm ?? 173);
+
+    return (
+      <View style={styles.dualWheelRow}>
+        {renderNumberWheel({
+          label: "Feet",
+          options: buildRange(4, 7),
+          selectedValue: heightCm === null ? null : feet,
+          defaultValue: 5,
+          onSelect: (value) => setUsHeight("feet", value),
+          unit: "ft",
+        })}
+        {renderNumberWheel({
+          label: "Inches",
+          options: buildRange(0, 11),
+          selectedValue: heightCm === null ? null : inches,
+          defaultValue: 8,
+          onSelect: (value) => setUsHeight("inches", value),
+          unit: "in",
+        })}
+      </View>
+    );
+  }
+
+  function renderMetricWeightControl() {
+    return renderNumberWheel({
+      label: "Kilograms",
+      options: buildRange(35, 250),
+      selectedValue: weightKg,
+      defaultValue: 70,
+      onSelect: setWeightKg,
+      unit: "kg",
+    });
+  }
+
+  function renderUsWeightControl() {
+    return renderNumberWheel({
+      label: "Pounds",
+      options: buildRange(75, 550),
+      selectedValue: weightKg === null ? null : kilogramsToPounds(weightKg),
+      defaultValue: 150,
+      onSelect: (value) => setWeightKg(poundsToKilograms(value)),
+      unit: "lb",
+    });
+  }
+
+  function renderNumberWheel({
+    defaultValue,
+    label,
+    onSelect,
+    options,
+    selectedValue,
+    unit,
+  }: {
+    defaultValue: number;
+    label: string;
+    onSelect: (value: number) => void;
+    options: number[];
+    selectedValue: number | null;
+    unit: string;
+  }) {
+    const displayValue = selectedValue ?? defaultValue;
+    const handleWheelMomentumEnd = (
+      event: NativeSyntheticEvent<NativeScrollEvent>
+    ) => {
+      const selectedIndex = Math.round(
+        event.nativeEvent.contentOffset.y / WHEEL_ITEM_HEIGHT
+      );
+      const nextValue = options[Math.min(options.length - 1, Math.max(0, selectedIndex))];
+
+      onSelect(nextValue);
+    };
+
+    return (
+      <View style={styles.wheelPanel}>
+        <Text style={styles.wheelLabel}>{label}</Text>
+        <View style={styles.wheelShell}>
+          <View style={styles.wheelSelectionBand} />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            snapToInterval={WHEEL_ITEM_HEIGHT}
+            decelerationRate="fast"
+            onMomentumScrollEnd={handleWheelMomentumEnd}
+            contentContainerStyle={styles.wheelContent}
+          >
+            {options.map((option) => {
+              const isSelected = option === displayValue;
+
+              return (
+                <Pressable
+                  key={option}
+                  style={styles.wheelItem}
+                  onPress={() => onSelect(option)}
+                >
+                  <Text style={[styles.wheelItemText, isSelected && styles.selectedWheelItemText]}>
+                    {option}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+        <Text style={styles.wheelUnit}>{unit}</Text>
+      </View>
+    );
+  }
+
+  function renderOptionCard({
+    description,
+    isSelected,
+    label,
+    onPress,
+  }: {
+    description?: string;
+    isSelected: boolean;
+    label: string;
+    onPress: () => void;
+  }) {
+    return (
+      <Pressable
+        key={label}
+        style={[styles.optionCard, isSelected && styles.selectedOptionCard]}
+        onPress={onPress}
+      >
+        <View style={[styles.selectionDot, isSelected && styles.selectedSelectionDot]}>
+          {isSelected ? <View style={styles.selectionDotInner} /> : null}
+        </View>
+        <View style={styles.optionTextGroup}>
+          <Text style={[styles.optionTitle, isSelected && styles.selectedOptionTitle]}>
+            {label}
+          </Text>
+          {description ? (
+            <Text
+              style={[
+                styles.optionDescription,
+                isSelected && styles.selectedOptionDescription,
+              ]}
+            >
+              {description}
+            </Text>
+          ) : null}
+        </View>
+      </Pressable>
+    );
+  }
+
+  function renderReviewRow(label: string, value: string) {
+    return (
+      <View key={label} style={styles.reviewRow}>
+        <Text style={styles.reviewLabel}>{label}</Text>
+        <Text style={styles.reviewValue}>{value}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.safeArea}>
@@ -60,169 +549,52 @@ export default function ProfileScreen() {
         </BlurView>
       </Pressable>
 
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingTop: insets.top + 76 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <Text style={styles.title}>Create Nutrition Profile</Text>
-          <Text style={styles.subtitle}>
-            This profile is optional. Later, it will help the app suggest daily
-            and per-meal nutrition targets.
+      <View style={[styles.container, { paddingTop: insets.top + 76 }]}>
+        <View style={styles.progressHeader}>
+          <Text style={styles.progressText}>
+            Step {currentStepIndex + 1} of {TOTAL_STEPS}
           </Text>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: progressPercent }]} />
+          </View>
         </View>
 
-        <View style={styles.inputSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Your Details</Text>
-            <Text style={styles.bodyText}>
-              Enter only what you want. The app stays usable without a profile.
+        <ScrollView
+          contentContainerStyle={[
+            styles.stepScrollContent,
+            { paddingBottom: insets.bottom + 148 },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {renderStepContent()}
+        </ScrollView>
+
+        <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
+          <Pressable
+            style={[
+              styles.secondaryButton,
+              currentStepIndex === 0 && styles.hiddenButton,
+            ]}
+            onPress={handlePreviousStep}
+            disabled={currentStepIndex === 0}
+          >
+            <Text style={styles.secondaryButtonText}>Back</Text>
+          </Pressable>
+
+          <Pressable
+            style={[
+              styles.primaryButton,
+              !canContinue && styles.disabledPrimaryButton,
+            ]}
+            onPress={isReviewStep ? handleSaveProfile : handleNextStep}
+            disabled={!canContinue}
+          >
+            <Text style={styles.primaryButtonText}>
+              {isReviewStep ? "Save Nutrition Profile" : "Continue"}
             </Text>
-          </View>
-
-          <View style={styles.inputGrid}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Age</Text>
-              <TextInput
-                style={styles.input}
-                value={ageInput}
-                onChangeText={setAgeInput}
-                keyboardType="numeric"
-                placeholder="18"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Height (cm)</Text>
-              <TextInput
-                style={styles.input}
-                value={heightInput}
-                onChangeText={setHeightInput}
-                keyboardType="numeric"
-                placeholder="175"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Weight (kg)</Text>
-              <TextInput
-                style={styles.input}
-                value={weightInput}
-                onChangeText={setWeightInput}
-                keyboardType="numeric"
-                placeholder="70"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-          </View>
+          </Pressable>
         </View>
-
-        <View style={styles.filterSection}>
-          <Text style={styles.filterTitle}>Sex</Text>
-          <View style={styles.filterRow}>
-            {SEX_OPTIONS.map((option) => {
-              const isSelected = sex === option.value;
-
-              return (
-                <Pressable
-                  key={option.value}
-                  style={[
-                    styles.filterButton,
-                    isSelected && styles.activeFilterButton,
-                  ]}
-                  onPress={() => setSex(option.value)}
-                >
-                  <Text
-                    style={[
-                      styles.filterButtonText,
-                      isSelected && styles.activeFilterButtonText,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.filterSection}>
-          <Text style={styles.filterTitle}>Activity Level</Text>
-          <View style={styles.filterRow}>
-            {ACTIVITY_LEVEL_OPTIONS.map((option) => {
-              const isSelected = activityLevel === option.value;
-
-              return (
-                <Pressable
-                  key={option.value}
-                  style={[
-                    styles.filterButton,
-                    isSelected && styles.activeFilterButton,
-                  ]}
-                  onPress={() => setActivityLevel(option.value)}
-                >
-                  <Text
-                    style={[
-                      styles.filterButtonText,
-                      isSelected && styles.activeFilterButtonText,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.filterSection}>
-          <Text style={styles.filterTitle}>Goal</Text>
-          <View style={styles.filterRow}>
-            {NUTRITION_GOAL_OPTIONS.map((option) => {
-              const isSelected = goal === option.value;
-
-              return (
-                <Pressable
-                  key={option.value}
-                  style={[
-                    styles.filterButton,
-                    isSelected && styles.activeFilterButton,
-                  ]}
-                  onPress={() => setGoal(option.value)}
-                >
-                  <Text
-                    style={[
-                      styles.filterButtonText,
-                      isSelected && styles.activeFilterButtonText,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <Pressable style={styles.saveButton} onPress={handleSaveProfile}>
-          <Text style={styles.saveButtonText}>Save Profile</Text>
-        </Pressable>
-
-        {savedProfile && (
-          <View style={styles.savedNotice}>
-            <Text style={styles.savedNoticeTitle}>Profile saved locally</Text>
-            <Text style={styles.savedNoticeText}>
-              Goal: {formatProfileLabel(savedProfile.goal)} · Activity:{" "}
-              {formatProfileLabel(savedProfile.activityLevel)}
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -234,155 +606,360 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: "#f9fafb",
     paddingHorizontal: 20,
-    paddingBottom: 24,
   },
 
-  header: {
-    marginBottom: 24,
+  progressHeader: {
+    marginBottom: 18,
   },
 
-  title: {
-    fontSize: 30,
+  progressText: {
+    fontSize: 13,
     fontWeight: "700",
-    color: "#111",
-    marginBottom: 8,
-  },
-
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: "#555",
-  },
-
-  inputSection: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 24,
-  },
-
-  sectionHeader: {
-    marginBottom: 2,
-  },
-
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111",
-    marginBottom: 6,
-  },
-
-  bodyText: {
-    fontSize: 14,
-    color: "#555",
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-
-  inputGrid: {
-    gap: 14,
-  },
-
-  inputGroup: {
-    marginBottom: 0,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 6,
-    color: "#333",
-  },
-
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#fff",
-    color: "#111827",
-  },
-
-  filterSection: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 24,
-  },
-
-  filterTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111",
+    color: "#6b7280",
     marginBottom: 10,
+    textTransform: "uppercase",
+    lineHeight: 18,
   },
 
-  filterRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-
-  filterButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+  progressTrack: {
+    height: 7,
     borderRadius: 999,
+    backgroundColor: "#e5e7eb",
+    overflow: "hidden",
+  },
+
+  progressFill: {
+    height: "100%",
+    borderRadius: 999,
+    backgroundColor: "#111",
+  },
+
+  stepScrollContent: {
+    flexGrow: 1,
+  },
+
+  stepCard: {
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    padding: 20,
+    minHeight: 430,
+  },
+
+  eyebrow: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#6b7280",
+    marginBottom: 12,
+    textTransform: "uppercase",
+  },
+
+  stepTitle: {
+    fontSize: 30,
+    lineHeight: 37,
+    fontWeight: "800",
+    color: "#111",
+    marginBottom: 24,
+  },
+
+  stepBody: {
+    fontSize: 16,
+    lineHeight: 23,
+    color: "#555",
+    marginBottom: 24,
+  },
+
+  infoCard: {
+    backgroundColor: "#f3f4f6",
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 8,
+  },
+
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#111",
+    marginBottom: 6,
+  },
+
+  infoText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#555",
+  },
+
+  unitToggle: {
+    flexDirection: "row",
+    backgroundColor: "#f3f4f6",
+    borderRadius: 14,
+    padding: 4,
+    marginBottom: 18,
+  },
+
+  unitToggleButton: {
+    flex: 1,
+    borderRadius: 10,
+    paddingVertical: 11,
+    alignItems: "center",
+  },
+
+  selectedUnitToggle: {
+    backgroundColor: "#111",
+  },
+
+  unitToggleText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#555",
+  },
+
+  selectedUnitToggleText: {
+    color: "#fff",
+  },
+
+  dualWheelRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+
+  wheelPanel: {
+    flex: 1,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#fff",
+    padding: 14,
+    alignItems: "center",
+  },
+
+  wheelLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#6b7280",
+    marginBottom: 10,
+    textTransform: "uppercase",
+  },
+
+  wheelShell: {
+    width: "100%",
+    height: WHEEL_ITEM_HEIGHT * 3,
+    overflow: "hidden",
+    justifyContent: "center",
+  },
+
+  wheelSelectionBand: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: WHEEL_ITEM_HEIGHT,
+    height: WHEEL_ITEM_HEIGHT,
+    borderRadius: 14,
+    backgroundColor: "#f3f4f6",
+  },
+
+  wheelContent: {
+    paddingVertical: WHEEL_ITEM_HEIGHT,
+  },
+
+  wheelItem: {
+    height: WHEEL_ITEM_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  wheelItemText: {
+    fontSize: 24,
+    lineHeight: 30,
+    fontWeight: "700",
+    color: "#9ca3af",
+  },
+
+  selectedWheelItemText: {
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: "800",
+    color: "#111",
+  },
+
+  wheelUnit: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#6b7280",
+    marginTop: 10,
+  },
+
+  optionStack: {
+    gap: 12,
+  },
+
+  optionCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     borderWidth: 1,
     borderColor: "#ddd",
+    borderRadius: 16,
     backgroundColor: "#fff",
+    padding: 16,
   },
 
-  activeFilterButton: {
+  selectedOptionCard: {
     backgroundColor: "#111",
     borderColor: "#111",
   },
 
-  filterButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-  },
-
-  activeFilterButtonText: {
-    color: "#fff",
-  },
-
-  saveButton: {
-    backgroundColor: "#111",
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 16,
+  selectionDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: "#d1d5db",
     alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    marginTop: 1,
   },
 
-  saveButtonText: {
-    color: "#fff",
+  selectedSelectionDot: {
+    borderColor: "#fff",
+  },
+
+  selectionDotInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#fff",
+  },
+
+  optionTextGroup: {
+    flex: 1,
+  },
+
+  optionTitle: {
     fontSize: 16,
+    lineHeight: 21,
+    fontWeight: "800",
+    color: "#111",
+  },
+
+  selectedOptionTitle: {
+    color: "#fff",
+  },
+
+  optionDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#555",
+    marginTop: 4,
+  },
+
+  selectedOptionDescription: {
+    color: "#e5e7eb",
+  },
+
+  reviewList: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    overflow: "hidden",
+  },
+
+  reviewRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+
+  reviewLabel: {
+    fontSize: 14,
     fontWeight: "700",
+    color: "#6b7280",
+  },
+
+  reviewValue: {
+    flex: 1,
+    textAlign: "right",
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#111",
   },
 
   savedNotice: {
     padding: 16,
     borderRadius: 14,
-    backgroundColor: "#fff",
-    marginBottom: 14,
+    backgroundColor: "#f3f4f6",
+    marginTop: 18,
   },
 
   savedNoticeTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "800",
     color: "#111",
-    marginBottom: 8,
+    marginBottom: 4,
   },
 
   savedNoticeText: {
     fontSize: 14,
     color: "#555",
     lineHeight: 20,
+  },
+
+  bottomBar: {
+    flexDirection: "row",
+    gap: 12,
+    paddingTop: 12,
+    backgroundColor: "#f9fafb",
+  },
+
+  secondaryButton: {
+    minWidth: 88,
+    borderRadius: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  hiddenButton: {
+    opacity: 0,
+  },
+
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#111",
+  },
+
+  primaryButton: {
+    flex: 1,
+    backgroundColor: "#111",
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  disabledPrimaryButton: {
+    backgroundColor: "#9ca3af",
+  },
+
+  primaryButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "800",
   },
 
   floatingBackButton: {
