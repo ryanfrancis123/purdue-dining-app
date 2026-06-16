@@ -10,6 +10,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import type { DimensionValue } from "react-native";
@@ -22,7 +23,6 @@ import {
 import { estimateMealMacroTarget } from "../src/utils/profileTargets";
 import type { ActivityLevel, NutritionGoal, NutritionProfile, Sex } from "../src/types/profile";
 
-const TOTAL_STEPS = 8;
 const CM_PER_INCH = 2.54;
 const KG_PER_POUND = 0.45359237;
 const AGE_MIN = 16;
@@ -34,6 +34,7 @@ type UnitSystem = "us" | "metric";
 
 type ProfileStep =
   | "intro"
+  | "name"
   | "age"
   | "height"
   | "weight"
@@ -47,6 +48,7 @@ type MaterialIconName = ComponentProps<typeof MaterialIcons>["name"];
 
 const PROFILE_STEPS: ProfileStep[] = [
   "intro",
+  "name",
   "age",
   "height",
   "weight",
@@ -55,6 +57,7 @@ const PROFILE_STEPS: ProfileStep[] = [
   "goal",
   "review",
 ];
+const TOTAL_STEPS = PROFILE_STEPS.length;
 
 const ACTIVITY_DISPLAY_OPTIONS: {
   label: string;
@@ -117,6 +120,7 @@ function poundsToKilograms(weightLb: number) {
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [displayName, setDisplayName] = useState("");
   const [age, setAge] = useState<number | null>(AGE_DEFAULT);
   const [heightCm, setHeightCm] = useState<number | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
@@ -166,7 +170,10 @@ export default function ProfileScreen() {
       return;
     }
 
+    const normalizedDisplayName = displayName.trim();
+
     const profile: NutritionProfile = {
+      displayName: normalizedDisplayName.length > 0 ? normalizedDisplayName : null,
       age,
       heightCm,
       weightKg,
@@ -222,6 +229,7 @@ export default function ProfileScreen() {
     activityLevel !== null &&
     goal !== null
       ? {
+          displayName: displayName.trim() || null,
           age,
           heightCm,
           weightKg,
@@ -251,6 +259,25 @@ export default function ProfileScreen() {
                 Answer what feels useful, skip what you want, and come back anytime.
               </Text>
             </View>
+          </View>
+        );
+      case "name":
+        return (
+          <View style={styles.stepCard}>
+            <Text style={styles.eyebrow}>Profile name</Text>
+            <Text style={styles.stepTitle}>What should we call this profile?</Text>
+            <Text style={styles.stepBody}>
+              Add a name to personalize the profile screen.
+            </Text>
+            <TextInput
+              style={styles.nameInput}
+              value={displayName}
+              onChangeText={setDisplayName}
+              placeholder="Enter a name"
+              placeholderTextColor="#9ca3af"
+              autoCapitalize="words"
+              returnKeyType="done"
+            />
           </View>
         );
       case "age":
@@ -342,6 +369,7 @@ export default function ProfileScreen() {
             </Text>
 
             <View style={styles.reviewList}>
+              {renderReviewRow("Name", displayName.trim() || "Not set")}
               {renderReviewRow("Age", age === null ? "Not provided" : `${age}`)}
               {renderReviewRow("Height", formatHeightForReview())}
               {renderReviewRow("Weight", formatWeightForReview())}
@@ -582,6 +610,9 @@ export default function ProfileScreen() {
     const dashboardActivityOption = ACTIVITY_DISPLAY_OPTIONS.find(
       (option) => option.value === savedProfile.activityLevel
     );
+    const dashboardTitle = savedProfile.displayName
+      ? `Welcome back, ${savedProfile.displayName}`
+      : "Your Nutrition Hub";
 
     const renderDashboardSectionContent = () => {
       switch (dashboardSection) {
@@ -591,7 +622,7 @@ export default function ProfileScreen() {
               <View style={styles.summaryHeroCard}>
                 <View style={styles.summaryHeroTextGroup}>
                   <Text style={styles.summaryEyebrow}>Nutrition Hub</Text>
-                  <Text style={styles.summaryTitle}>Your Nutrition Hub</Text>
+                  <Text style={styles.summaryTitle}>{dashboardTitle}</Text>
                   <Text style={styles.summaryBody}>
                     A snapshot of your meal targets and saved profile details to help
                     guide smarter dining choices.
@@ -1487,6 +1518,19 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     color: "#555",
     marginBottom: 24,
+  },
+
+  nameInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 16,
+    backgroundColor: "#fff",
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "700",
+    color: "#111",
   },
 
   infoCard: {
