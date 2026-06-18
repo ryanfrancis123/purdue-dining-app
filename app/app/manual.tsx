@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { BlurView } from "expo-blur";
 import {
   Animated,
@@ -185,6 +185,7 @@ export default function ManualRecommendationScreen() {
   );
   const [mealData, setMealData] = useState<PersistedMealData>(EMPTY_MEAL_DATA);
   const [mealActionStatus, setMealActionStatus] = useState<string | null>(null);
+  const hasUserEditedControlsRef = useRef(false);
   const sheetSlideAnim = useRef(new Animated.Value(400)).current;
 
   useEffect(() => {
@@ -210,24 +211,6 @@ export default function ManualRecommendationScreen() {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadMealData() {
-      const persistedMealData = await loadPersistedMealData();
-
-      if (isMounted) {
-        setMealData(persistedMealData);
-      }
-    }
-
-    loadMealData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
     if (selectedMeal) {
       setMealActionStatus(null);
       sheetSlideAnim.setValue(400);
@@ -245,70 +228,92 @@ export default function ManualRecommendationScreen() {
 
   const [targets, setTargets] = useState<MacroTargets>(initialTargets.targets);
 
-  useEffect(() => {
-    let isMounted = true;
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
 
-    async function loadProfilePreferences() {
-      try {
-        const storedProfile = await loadPersistedNutritionProfile();
+      async function refreshManualData() {
+        const persistedMealData = await loadPersistedMealData();
 
-        if (!isMounted || storedProfile === null) {
+        if (isActive) {
+          setMealData(persistedMealData);
+        }
+
+        if (hasUserEditedControlsRef.current) {
           return;
         }
 
-        const storedPreferences = storedProfile.preferences;
-        const appliedDefaults =
-          storedPreferences.excludedAllergens.length > 0 ||
-          storedPreferences.favoriteDiningHalls.length > 0 ||
-          (!hasValidRouteTargets && storedPreferences.defaultMealStyle !== null);
+        try {
+          const storedProfile = await loadPersistedNutritionProfile();
 
-        setExcludedAllergens(storedPreferences.excludedAllergens);
-        setProfileFavoriteDiningHalls(storedPreferences.favoriteDiningHalls);
-
-        if (storedPreferences.favoriteDiningHalls.length === 1) {
-          setSelectedDiningHall(storedPreferences.favoriteDiningHalls[0]);
-        }
-
-        if (!hasValidRouteTargets && storedPreferences.defaultMealStyle !== null) {
-          const profilePreset = TARGET_PRESETS.find(
-            (preset) => preset.id === storedPreferences.defaultMealStyle
-          );
-
-          if (profilePreset) {
-            setSelectedPresetId(profilePreset.id);
-            setCaloriesInput(profilePreset.calories);
-            setProteinInput(profilePreset.protein);
-            setCarbsInput(profilePreset.carbs);
-            setTargets({
-              calories: Number(profilePreset.calories),
-              protein: Number(profilePreset.protein),
-              carbs: Number(profilePreset.carbs),
-            });
+          if (!isActive || storedProfile === null) {
+            return;
           }
+
+          const storedPreferences = storedProfile.preferences;
+          const appliedDefaults =
+            storedPreferences.excludedAllergens.length > 0 ||
+            storedPreferences.favoriteDiningHalls.length > 0 ||
+            (!hasValidRouteTargets && storedPreferences.defaultMealStyle !== null);
+
+          setExcludedAllergens(storedPreferences.excludedAllergens);
+          setProfileFavoriteDiningHalls(storedPreferences.favoriteDiningHalls);
+
+          if (storedPreferences.favoriteDiningHalls.length === 1) {
+            setSelectedDiningHall(storedPreferences.favoriteDiningHalls[0]);
+          }
+
+          if (!hasValidRouteTargets && storedPreferences.defaultMealStyle !== null) {
+            const profilePreset = TARGET_PRESETS.find(
+              (preset) => preset.id === storedPreferences.defaultMealStyle
+            );
+
+            if (profilePreset) {
+              setSelectedPresetId(profilePreset.id);
+              setCaloriesInput(profilePreset.calories);
+              setProteinInput(profilePreset.protein);
+              setCarbsInput(profilePreset.carbs);
+              setTargets({
+                calories: Number(profilePreset.calories),
+                protein: Number(profilePreset.protein),
+                carbs: Number(profilePreset.carbs),
+              });
+            }
+          }
+
+          setProfileDefaultsApplied(appliedDefaults);
+        } catch (error) {
+          console.warn("Could not load profile preferences.", error);
         }
-
-        setProfileDefaultsApplied(appliedDefaults);
-      } catch (error) {
-        console.warn("Could not load profile preferences.", error);
       }
-    }
 
-    loadProfilePreferences();
+      refreshManualData();
 
-    return () => {
-      isMounted = false;
-    };
-  }, [hasValidRouteTargets]);
+      return () => {
+        isActive = false;
+      };
+    }, [hasValidRouteTargets])
+  );
 
-  const recommendations = recommendMeals(
-    menuItems,
-    targets,
-    selectedMealPeriod,
-    excludedAllergens,
-    selectedDiningHall
+  function markUserEditedControls() {
+    hasUserEditedControlsRef.current = true;
+    setProfileDefaultsApplied(false);
+  }
+
+  const recommendations = useMemo(
+    () =>
+      recommendMeals(
+        menuItems,
+        targets,
+        selectedMealPeriod,
+        excludedAllergens,
+        selectedDiningHall
+      ),
+    [excludedAllergens, menuItems, selectedDiningHall, selectedMealPeriod, targets]
   );
 
   function handleGenerateRecommendations() {
+    markUserEditedControls();
     const calories = Number(caloriesInput);
     const protein = Number(proteinInput);
     const carbs = Number(carbsInput);
@@ -329,6 +334,7 @@ export default function ManualRecommendationScreen() {
   }
 
   function applyTargetPreset(preset: TargetPreset) {
+    markUserEditedControls();
     setSelectedPresetId(preset.id);
     setCaloriesInput(preset.calories);
     setProteinInput(preset.protein);
@@ -336,6 +342,7 @@ export default function ManualRecommendationScreen() {
   }
 
   function toggleAllergen(allergen: Allergen) {
+    markUserEditedControls();
     if (excludedAllergens.includes(allergen)) {
       setExcludedAllergens(
         excludedAllergens.filter((item) => item !== allergen)
@@ -373,6 +380,8 @@ export default function ManualRecommendationScreen() {
     if (didSave) {
       setMealData(nextMealData);
       setMealActionStatus("Meal saved");
+    } else {
+      setMealActionStatus("Could not save meal");
     }
   }
 
@@ -391,6 +400,8 @@ export default function ManualRecommendationScreen() {
     if (didSave) {
       setMealData(nextMealData);
       setMealActionStatus("Meal logged");
+    } else {
+      setMealActionStatus("Could not log meal");
     }
   }
 
@@ -441,6 +452,9 @@ export default function ManualRecommendationScreen() {
                         isSelected && styles.selectedPresetButton,
                     ]}
                     onPress={() => applyTargetPreset(preset)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${preset.label} target preset`}
+                    accessibilityState={{ selected: isSelected }}
                     >
                     <Text
                         style={[
@@ -471,6 +485,7 @@ export default function ManualRecommendationScreen() {
                 style={styles.input}
                 value={caloriesInput}
                 onChangeText={(value) => {
+                    markUserEditedControls();
                     setCaloriesInput(value);
                     setSelectedPresetId("custom");
                 }}
@@ -485,6 +500,7 @@ export default function ManualRecommendationScreen() {
                 style={styles.input}
                 value={proteinInput}
                 onChangeText={(value) => {
+                    markUserEditedControls();
                     setProteinInput(value);
                     setSelectedPresetId("custom");
                 }}
@@ -499,6 +515,7 @@ export default function ManualRecommendationScreen() {
                 style={styles.input}
                 value={carbsInput}
                 onChangeText={(value) => {
+                    markUserEditedControls();
                     setCarbsInput(value);
                     setSelectedPresetId("custom");
                 }}
@@ -510,14 +527,12 @@ export default function ManualRecommendationScreen() {
             <TouchableOpacity
                 style={styles.button}
                 onPress={handleGenerateRecommendations}
+                accessibilityRole="button"
+                accessibilityLabel="Generate meal recommendations"
             >
                 <Text style={styles.buttonText}>Generate Meal Recommendations</Text>
             </TouchableOpacity>
             </View>
-
-            {isLoadingMenuItems && (
-                <Text>Loading menu items...</Text>
-            )}
 
             {menuItemsError && (
                 <Text>{menuItemsError}</Text>
@@ -533,7 +548,13 @@ export default function ManualRecommendationScreen() {
                     styles.filterButton,
                     selectedMealPeriod === undefined && styles.activeFilterButton,
                 ]}
-                onPress={() => setSelectedMealPeriod(undefined)}
+                onPress={() => {
+                    markUserEditedControls();
+                    setSelectedMealPeriod(undefined);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="All meal periods"
+                accessibilityState={{ selected: selectedMealPeriod === undefined }}
                 >
                 <Text
                     style={[
@@ -551,7 +572,13 @@ export default function ManualRecommendationScreen() {
                     styles.filterButton,
                     selectedMealPeriod === "breakfast" && styles.activeFilterButton,
                 ]}
-                onPress={() => setSelectedMealPeriod("breakfast")}
+                onPress={() => {
+                    markUserEditedControls();
+                    setSelectedMealPeriod("breakfast");
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Breakfast meal period"
+                accessibilityState={{ selected: selectedMealPeriod === "breakfast" }}
                 >
                 <Text
                     style={[
@@ -569,7 +596,13 @@ export default function ManualRecommendationScreen() {
                     styles.filterButton,
                     selectedMealPeriod === "lunch" && styles.activeFilterButton,
                 ]}
-                onPress={() => setSelectedMealPeriod("lunch")}
+                onPress={() => {
+                    markUserEditedControls();
+                    setSelectedMealPeriod("lunch");
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Lunch meal period"
+                accessibilityState={{ selected: selectedMealPeriod === "lunch" }}
                 >
                 <Text
                     style={[
@@ -587,7 +620,13 @@ export default function ManualRecommendationScreen() {
                     styles.filterButton,
                     selectedMealPeriod === "dinner" && styles.activeFilterButton,
                 ]}
-                onPress={() => setSelectedMealPeriod("dinner")}
+                onPress={() => {
+                    markUserEditedControls();
+                    setSelectedMealPeriod("dinner");
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Dinner meal period"
+                accessibilityState={{ selected: selectedMealPeriod === "dinner" }}
                 >
                 <Text
                     style={[
@@ -619,7 +658,13 @@ export default function ManualRecommendationScreen() {
                             styles.profileFavoriteButton,
                             isSelected && styles.activeFilterButton,
                         ]}
-                        onPress={() => setSelectedDiningHall(diningHall)}
+                        onPress={() => {
+                            markUserEditedControls();
+                            setSelectedDiningHall(diningHall);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${diningHall} dining hall`}
+                        accessibilityState={{ selected: isSelected }}
                         >
                         <Text
                             style={[
@@ -642,7 +687,13 @@ export default function ManualRecommendationScreen() {
                     styles.filterButton,
                     selectedDiningHall === undefined && styles.activeFilterButton,
                 ]}
-                onPress={() => setSelectedDiningHall(undefined)}
+                onPress={() => {
+                    markUserEditedControls();
+                    setSelectedDiningHall(undefined);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="All dining halls"
+                accessibilityState={{ selected: selectedDiningHall === undefined }}
                 >
                 <Text
                     style={[
@@ -665,7 +716,13 @@ export default function ManualRecommendationScreen() {
                         styles.filterButton,
                         isSelected && styles.activeFilterButton,
                     ]}
-                    onPress={() => setSelectedDiningHall(diningHall)}
+                    onPress={() => {
+                        markUserEditedControls();
+                        setSelectedDiningHall(diningHall);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${diningHall} dining hall`}
+                    accessibilityState={{ selected: isSelected }}
                     >
                     <Text
                         style={[
@@ -700,6 +757,9 @@ export default function ManualRecommendationScreen() {
                         isSelected && styles.activeFilterButton,
                     ]}
                     onPress={() => toggleAllergen(allergen)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Exclude ${option.label}`}
+                    accessibilityState={{ selected: isSelected }}
                     >
                     <Text
                         style={[
@@ -728,7 +788,14 @@ export default function ManualRecommendationScreen() {
             ) : null}
             </View>
 
-            {recommendations.length === 0 ? (
+            {isLoadingMenuItems ? (
+            <View style={styles.emptyStateCard}>
+                <Text style={styles.emptyStateTitle}>Loading menu items...</Text>
+                <Text style={styles.emptyStateText}>
+                Preparing recommendations with your current targets and filters.
+                </Text>
+            </View>
+            ) : recommendations.length === 0 ? (
             <View style={styles.emptyStateCard}>
                 <Text style={styles.emptyStateTitle}>No meal recommendations found</Text>
                 <Text style={styles.emptyStateText}>
@@ -763,6 +830,7 @@ export default function ManualRecommendationScreen() {
             <Animated.View
                 style={[
                 styles.bottomSheet,
+                { paddingBottom: insets.bottom + 18 },
                 {
                     transform: [{ translateY: sheetSlideAnim }],
                 },
@@ -771,7 +839,7 @@ export default function ManualRecommendationScreen() {
                 {selectedMeal ? (
                 <>
                     <View style={styles.sheetHeader}>
-                    <View>
+                    <View style={styles.sheetHeaderText}>
                         <Text style={styles.sheetTitle}>Meal Details</Text>
                         <Text style={styles.sheetSubtitle}>
                         {selectedMeal.totalCalories} cal ·{" "}
@@ -784,11 +852,18 @@ export default function ManualRecommendationScreen() {
                     <Pressable
                         style={styles.closeButton}
                         onPress={() => setSelectedMeal(null)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Close meal details"
                     >
                         <Text style={styles.closeButtonText}>×</Text>
                     </Pressable>
                     </View>
 
+                    <ScrollView
+                    style={styles.sheetScrollArea}
+                    contentContainerStyle={styles.sheetScrollContent}
+                    showsVerticalScrollIndicator={false}
+                    >
                     <View style={styles.sheetSection}>
                     <Text style={styles.sheetSectionLabel}>Items</Text>
 
@@ -828,6 +903,7 @@ export default function ManualRecommendationScreen() {
                         {selectedMeal.explanation}
                     </Text>
                     </View>
+                    </ScrollView>
 
                     <View style={styles.sheetActionRow}>
                     <Pressable
@@ -837,6 +913,12 @@ export default function ManualRecommendationScreen() {
                         ]}
                         onPress={handleSaveSelectedMeal}
                         disabled={isMealSaved(selectedMeal)}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                        isMealSaved(selectedMeal) ? "Meal already saved" : "Save meal"
+                        }
+                        accessibilityHint="Saves this meal combination to this device."
+                        accessibilityState={{ disabled: isMealSaved(selectedMeal) }}
                     >
                         <Text
                         style={[
@@ -851,13 +933,24 @@ export default function ManualRecommendationScreen() {
                     <Pressable
                         style={styles.sheetActionButton}
                         onPress={handleLogSelectedMeal}
+                        accessibilityRole="button"
+                        accessibilityLabel="Log meal"
+                        accessibilityHint="Adds this meal to your local meal log."
                     >
                         <Text style={styles.sheetActionButtonText}>Log Meal</Text>
                     </Pressable>
                     </View>
 
                     {mealActionStatus ? (
-                    <Text style={styles.sheetActionStatus}>{mealActionStatus}</Text>
+                    <Text
+                        style={[
+                        styles.sheetActionStatus,
+                        mealActionStatus.startsWith("Could not") &&
+                            styles.sheetActionStatusError,
+                        ]}
+                    >
+                        {mealActionStatus}
+                    </Text>
                     ) : null}
                 </>
                 ) : null}
@@ -875,9 +968,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9fafb",
     paddingHorizontal: 20,
     paddingBottom: 24,
-  },
-  content: {
-    paddingBottom: 40,
   },
   title: {
     fontSize: 30,
@@ -938,42 +1028,6 @@ const styles = StyleSheet.create({
   targetText: {
     fontSize: 14,
     color: "#666",
-  },
-  card: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 14,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 10,
-    color: "#111",
-  },
-  itemList: {
-    marginBottom: 12,
-  },
-  itemText: {
-    fontSize: 16,
-    color: "#333",
-    marginBottom: 4,
-  },
-  macroRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  macroText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#222",
-  },
-  explanation: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#555",
-    marginTop: 10,
   },
   filterSection: {
     backgroundColor: "#fff",
@@ -1039,27 +1093,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  mealSummaryBox: {
-    marginTop: 14,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-  },
-  mealSummaryLabel: {
-    marginTop: 4,
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#6b7280",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-mealSummaryText: {
-  marginTop: 4,
-  marginBottom: 10,
-  fontSize: 15,
-  fontWeight: "700",
-  color: "#111827",
-},
 modalOverlay: {
   flex: 1,
   justifyContent: "flex-end",
@@ -1073,7 +1106,6 @@ bottomSheet: {
   borderTopLeftRadius: 28,
   borderTopRightRadius: 28,
   padding: 22,
-  paddingBottom: 36,
   maxHeight: "80%",
 },
 sheetHeader: {
@@ -1081,6 +1113,9 @@ sheetHeader: {
   justifyContent: "space-between",
   alignItems: "flex-start",
   gap: 16,
+},
+sheetHeaderText: {
+  flex: 1,
 },
 sheetTitle: {
   fontSize: 24,
@@ -1107,6 +1142,13 @@ closeButtonText: {
 },
 sheetSection: {
   marginTop: 22,
+},
+sheetScrollArea: {
+  flexShrink: 1,
+  marginTop: 6,
+},
+sheetScrollContent: {
+  paddingBottom: 4,
 },
 sheetSectionLabel: {
   fontSize: 12,
@@ -1141,6 +1183,7 @@ sheetItemCalories: {
   fontSize: 15,
   fontWeight: "700",
   color: "#b45309",
+  flexShrink: 0,
 },
 sheetExplanation: {
   marginTop: 10,
@@ -1180,6 +1223,9 @@ sheetActionStatus: {
   lineHeight: 18,
   fontWeight: "800",
   color: "#166534",
+},
+sheetActionStatusError: {
+  color: "#b91c1c",
 },
 sheetItemMacros: {
   marginTop: 4,

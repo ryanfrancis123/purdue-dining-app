@@ -54,6 +54,9 @@ export function MealRecommendationCard({
         pressed && styles.cardPressed,
       ]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Meal option ${index + 1}, ${itemNames}`}
+      accessibilityHint="Opens meal details."
     >
       <View style={styles.headerRow}>
         <View style={styles.titleGroup}>
@@ -66,7 +69,9 @@ export function MealRecommendationCard({
         <Text style={styles.calorieText}>{meal.totalCalories} cal</Text>
       </View>
 
-      <Text style={styles.itemsText}>{itemNames}</Text>
+      <Text style={styles.itemsText} numberOfLines={3}>
+        {itemNames}
+      </Text>
 
       <View style={styles.summaryRow}>
         <Text style={styles.summaryText}>{meal.totalProtein}g protein</Text>
@@ -100,6 +105,7 @@ const styles = StyleSheet.create({
   },
   titleGroup: {
     flex: 1,
+    minWidth: 0,
   },
   optionLabel: {
     fontSize: 19,
@@ -110,11 +116,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 14,
     color: "#6b7280",
+    flexShrink: 1,
   },
   calorieText: {
     fontSize: 17,
     fontWeight: "800",
     color: "#b45309",
+    flexShrink: 0,
   },
   itemsText: {
     marginTop: 12,

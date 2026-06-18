@@ -79,8 +79,8 @@ export default function HomeScreen() {
           >
             <Text style={styles.choiceTitle}>Create Nutrition Profile</Text>
             <Text style={styles.choiceDescription}>
-              Enter your body, activity level, and goal so the app can suggest
-              better targets later.
+              Enter your body, activity level, and goal to estimate meal targets
+              you can send into manual recommendations.
             </Text>
             <Text style={styles.choiceAction}>Create optional profile →</Text>
           </Pressable>

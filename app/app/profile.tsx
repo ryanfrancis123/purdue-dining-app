@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from "expo-router";
 import { BlurView } from "expo-blur";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ComponentProps } from "react";
 import {
   ActivityIndicator,
@@ -175,6 +175,7 @@ export default function ProfileScreen() {
   const [preferenceSaveStatus, setPreferenceSaveStatus] = useState<string | null>(
     null
   );
+  const [profileSaveStatus, setProfileSaveStatus] = useState<string | null>(null);
   const [mealData, setMealData] = useState<PersistedMealData>(EMPTY_MEAL_DATA);
   const [mealDataStatus, setMealDataStatus] = useState<string | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -234,6 +235,26 @@ export default function ProfileScreen() {
   const isReviewStep = currentStep === "review";
   const shouldShowDashboard = savedProfile !== null && !isEditingProfile;
   const progressPercent: DimensionValue = `${((currentStepIndex + 1) / TOTAL_STEPS) * 100}%`;
+  const todayLocalDate = getLocalDateKey();
+  const dashboardTarget = useMemo(
+    () => (savedProfile ? estimateMealMacroTarget(savedProfile) : null),
+    [savedProfile]
+  );
+  const todaySummary = useMemo(
+    () => summarizeMealLogsForDate(mealData.mealLogs, todayLocalDate),
+    [mealData.mealLogs, todayLocalDate]
+  );
+  const weeklySummary = useMemo(
+    () => summarizeMealLogsForLastSevenDays(mealData.mealLogs),
+    [mealData.mealLogs]
+  );
+  const targetReferenceProgress = useMemo(
+    () =>
+      dashboardTarget
+        ? getMacroTargetReferenceProgress(todaySummary, dashboardTarget)
+        : null,
+    [dashboardTarget, todaySummary]
+  );
 
   const canContinue =
     (currentStep !== "sex" || sex !== null) &&
@@ -287,12 +308,17 @@ export default function ProfileScreen() {
               setUnitSystem("us");
               setPreferences(DEFAULT_PROFILE_PREFERENCES);
               setPreferenceSaveStatus(null);
+              setProfileSaveStatus(null);
               setCurrentStep("intro");
               setIsEditingProfile(false);
               setDashboardSection("summary");
               router.replace("/");
             } catch (error) {
               console.warn("Could not reset profile.", error);
+              Alert.alert(
+                "Reset failed",
+                "Could not reset your profile. Please try again."
+              );
             }
           },
         },
@@ -300,7 +326,7 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (sex === null || activityLevel === null || goal === null) {
       return;
     }
@@ -317,12 +343,20 @@ export default function ProfileScreen() {
       goal,
     };
 
-    setSavedProfile(profile);
-    setIsEditingProfile(false);
+    setProfileSaveStatus(null);
 
-    savePersistedNutritionProfile(profile, unitSystem, preferences).catch((error) => {
+    try {
+      await savePersistedNutritionProfile(profile, unitSystem, preferences);
+      setSavedProfile(profile);
+      setIsEditingProfile(false);
+    } catch (error) {
       console.warn("Could not save profile.", error);
-    });
+      setProfileSaveStatus("Could not save profile");
+      Alert.alert(
+        "Profile not saved",
+        "Could not save your profile on this device. Please try again."
+      );
+    }
   };
 
   const toggleExcludedAllergenPreference = (allergen: Allergen) => {
@@ -374,6 +408,7 @@ export default function ProfileScreen() {
       })
       .catch((error) => {
         console.warn("Could not save preferences.", error);
+        setPreferenceSaveStatus("Could not save preferences");
       });
   };
 
@@ -538,7 +573,7 @@ export default function ProfileScreen() {
             <Text style={styles.eyebrow}>Nutrition direction</Text>
             <Text style={styles.stepTitle}>What is your main goal?</Text>
             <Text style={styles.stepBody}>
-              This helps shape future meal target suggestions.
+              This helps estimate meal targets for manual recommendations.
             </Text>
             <View style={styles.optionStack}>
               {NUTRITION_GOAL_OPTIONS.map((option) => renderOptionCard({
@@ -643,7 +678,9 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.profileSnapshotLabel}>{label}</Text>
         </View>
-        <Text style={styles.profileSnapshotValue}>{value}</Text>
+        <Text style={styles.profileSnapshotValue} numberOfLines={2}>
+          {value}
+        </Text>
       </View>
     );
   }
@@ -868,6 +905,8 @@ export default function ProfileScreen() {
     if (didSave) {
       setMealData(nextMealData);
       setMealDataStatus("Meal logged");
+    } else {
+      setMealDataStatus("Could not log meal");
     }
   }
 
@@ -895,6 +934,8 @@ export default function ProfileScreen() {
             if (didSave) {
               setMealData(nextMealData);
               setMealDataStatus("Saved meal removed");
+            } else {
+              setMealDataStatus("Could not remove saved meal");
             }
           },
         },
@@ -924,6 +965,8 @@ export default function ProfileScreen() {
             if (didSave) {
               setMealData(nextMealData);
               setMealDataStatus("Meal log removed");
+            } else {
+              setMealDataStatus("Could not remove meal log");
             }
           },
         },
@@ -934,7 +977,9 @@ export default function ProfileScreen() {
   function renderSavedMealCard(savedMeal: SavedMeal) {
     return (
       <View key={savedMeal.id} style={styles.mealRecordCard}>
-        <Text style={styles.mealRecordTitle}>{getMealItemNames(savedMeal)}</Text>
+        <Text style={styles.mealRecordTitle} numberOfLines={3}>
+          {getMealItemNames(savedMeal)}
+        </Text>
         <Text style={styles.mealRecordMeta}>
           {getMealDiningHallLabel(savedMeal)} · {getMealPeriodLabel(savedMeal)} · Saved{" "}
           {formatStoredDate(savedMeal.localDate)}
@@ -947,12 +992,18 @@ export default function ProfileScreen() {
           <Pressable
             style={styles.mealRecordPrimaryAction}
             onPress={() => handleLogSavedMeal(savedMeal)}
+            accessibilityRole="button"
+            accessibilityLabel="Log saved meal"
+            accessibilityHint="Adds this saved meal to your meal log."
           >
             <Text style={styles.mealRecordPrimaryActionText}>Log Again</Text>
           </Pressable>
           <Pressable
             style={styles.mealRecordSecondaryAction}
             onPress={() => handleRemoveSavedMeal(savedMeal)}
+            accessibilityRole="button"
+            accessibilityLabel="Remove saved meal"
+            accessibilityHint="Removes this saved meal from this device."
           >
             <Text style={styles.mealRecordSecondaryActionText}>Remove</Text>
           </Pressable>
@@ -966,7 +1017,9 @@ export default function ProfileScreen() {
 
     return (
       <View key={mealLog.id} style={styles.mealRecordCard}>
-        <Text style={styles.mealRecordTitle}>{getMealItemNames(mealLog)}</Text>
+        <Text style={styles.mealRecordTitle} numberOfLines={3}>
+          {getMealItemNames(mealLog)}
+        </Text>
         <Text style={styles.mealRecordMeta}>
           {formatMealLogDate(mealLog)}
           {loggedTime ? ` · ${loggedTime}` : ""}
@@ -979,25 +1032,13 @@ export default function ProfileScreen() {
           <Pressable
             style={styles.mealRecordSecondaryAction}
             onPress={() => handleRemoveMealLog(mealLog)}
+            accessibilityRole="button"
+            accessibilityLabel="Remove meal log"
+            accessibilityHint="Removes this logged meal entry from this device."
           >
             <Text style={styles.mealRecordSecondaryActionText}>Remove</Text>
           </Pressable>
         </View>
-      </View>
-    );
-  }
-
-  function renderPreferencePreviewChip({
-    iconName,
-    label,
-  }: {
-    iconName: MaterialIconName;
-    label: string;
-  }) {
-    return (
-      <View key={label} style={styles.preferencePreviewChip}>
-        <MaterialIcons name={iconName} size={17} color="#8a6a26" />
-        <Text style={styles.preferencePreviewChipText}>{label}</Text>
       </View>
     );
   }
@@ -1020,6 +1061,8 @@ export default function ProfileScreen() {
         ]}
         onPress={onPress}
         accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ selected: isSelected }}
       >
         <Text
           style={[
@@ -1046,7 +1089,7 @@ export default function ProfileScreen() {
           <MaterialIcons name={iconName} size={20} color="#555" />
           <Text style={styles.preferenceSettingsLabel}>{label}</Text>
         </View>
-        <Text style={styles.preferenceSettingsStatus}>Coming later</Text>
+        <Text style={styles.preferenceSettingsStatus}>Not available</Text>
       </View>
     );
   }
@@ -1058,6 +1101,7 @@ export default function ProfileScreen() {
         onPress={handleResetProfile}
         accessibilityRole="button"
         accessibilityLabel="Reset Nutrition Profile"
+        accessibilityHint="Removes your saved nutrition profile from this device."
       >
         <View style={styles.preferenceSettingsLabelGroup}>
           <MaterialIcons name="delete-outline" size={20} color="#b91c1c" />
@@ -1069,7 +1113,11 @@ export default function ProfileScreen() {
   }
 
   function renderProfileDashboard() {
-    if (savedProfile === null) {
+    if (
+      savedProfile === null ||
+      dashboardTarget === null ||
+      targetReferenceProgress === null
+    ) {
       return null;
     }
 
@@ -1079,16 +1127,6 @@ export default function ProfileScreen() {
       { label: "Preferences", value: "preferences" },
       { label: "Progress", value: "progress" },
     ];
-    const dashboardTarget = estimateMealMacroTarget(savedProfile);
-    const todaySummary = summarizeMealLogsForDate(
-      mealData.mealLogs,
-      getLocalDateKey()
-    );
-    const weeklySummary = summarizeMealLogsForLastSevenDays(mealData.mealLogs);
-    const targetReferenceProgress = getMacroTargetReferenceProgress(
-      todaySummary,
-      dashboardTarget
-    );
     const dashboardActivityOption = ACTIVITY_DISPLAY_OPTIONS.find(
       (option) => option.value === savedProfile.activityLevel
     );
@@ -1212,6 +1250,8 @@ export default function ProfileScreen() {
                     setIsEditingProfile(true);
                     setCurrentStep("review");
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Edit profile"
                 >
                   <MaterialIcons name="edit" size={19} color="#f2c766" />
                   <Text style={styles.summaryEditButtonText}>Edit Profile</Text>
@@ -1227,7 +1267,7 @@ export default function ProfileScreen() {
                 iconName: "restaurant",
                 title: "Meals",
                 body:
-                  "Review future recommendations and saved dining choices from one place.",
+                  "Send your profile targets into manual recommendations and review saved dining choices.",
               })}
 
               <View style={styles.summaryCard}>
@@ -1276,34 +1316,13 @@ export default function ProfileScreen() {
                       },
                     })
                   }
+                  accessibilityRole="button"
+                  accessibilityLabel="Use these targets"
+                  accessibilityHint="Opens manual recommendations with your profile targets."
                 >
                   <Text style={styles.summaryEditButtonText}>Use These Targets</Text>
                   <MaterialIcons name="arrow-forward" size={18} color="#f2c766" />
                 </Pressable>
-              </View>
-
-              <View style={styles.summaryCard}>
-                <View style={styles.summaryCardHeader}>
-                  <View style={styles.summaryCardBadge}>
-                    <MaterialIcons name="restaurant-menu" size={24} color="#b08a3c" />
-                  </View>
-                  <View style={styles.summaryCardTitleGroup}>
-                    <Text style={styles.summaryCardTitle}>Recommended Combos</Text>
-                    <Text style={styles.summaryCardSubtitle}>
-                      Recommendations coming later
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.mealsEmptyPreview}>
-                  <MaterialIcons name="lock" size={24} color="#b08a3c" />
-                  <Text style={styles.mealsEmptyTitle}>
-                    Recommendations coming later
-                  </Text>
-                  <Text style={styles.mealsEmptyText}>
-                    Purdue dining combinations will appear here once profile targets can
-                    be applied to recommendations.
-                  </Text>
-                </View>
               </View>
 
               <View style={styles.summaryCard}>
@@ -1329,7 +1348,14 @@ export default function ProfileScreen() {
                   </View>
                 )}
                 {mealDataStatus ? (
-                  <Text style={styles.mealDataStatus}>{mealDataStatus}</Text>
+                  <Text
+                    style={[
+                      styles.mealDataStatus,
+                      mealDataStatus.startsWith("Could not") && styles.errorStatus,
+                    ]}
+                  >
+                    {mealDataStatus}
+                  </Text>
                 ) : null}
               </View>
             </View>
@@ -1353,13 +1379,13 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Dietary Preferences</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Dietary filtering will be added when menu details support it reliably
+                      Allergen exclusions are available in manual recommendations
                     </Text>
                   </View>
                 </View>
                 <Text style={styles.dashboardPlaceholderBody}>
-                  This app will not label meals for dietary suitability until those
-                  details are reliable.
+                  The app avoids unsupported dietary suitability labels. Use allergen
+                  exclusions below when listed allergen data is relevant.
                 </Text>
               </View>
 
@@ -1444,12 +1470,21 @@ export default function ProfileScreen() {
                 style={styles.summaryEditButton}
                 onPress={handleSavePreferences}
                 accessibilityRole="button"
+                accessibilityLabel="Save preferences"
               >
                 <MaterialIcons name="save" size={19} color="#f2c766" />
                 <Text style={styles.summaryEditButtonText}>Save Preferences</Text>
               </Pressable>
               {preferenceSaveStatus ? (
-                <Text style={styles.preferenceSaveStatus}>{preferenceSaveStatus}</Text>
+                <Text
+                  style={[
+                    styles.preferenceSaveStatus,
+                    preferenceSaveStatus.startsWith("Could not") &&
+                      styles.errorStatus,
+                  ]}
+                >
+                  {preferenceSaveStatus}
+                </Text>
               ) : null}
 
               <View style={styles.summaryCard}>
@@ -1460,7 +1495,7 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Profile & App Settings</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Settings previews are not connected yet
+                      Local profile controls for this device
                     </Text>
                   </View>
                 </View>
@@ -1623,7 +1658,14 @@ export default function ProfileScreen() {
                       {mealData.mealLogs.slice(0, 5).map(renderMealLogCard)}
                     </View>
                     {mealDataStatus ? (
-                      <Text style={styles.mealDataStatus}>{mealDataStatus}</Text>
+                      <Text
+                        style={[
+                          styles.mealDataStatus,
+                          mealDataStatus.startsWith("Could not") && styles.errorStatus,
+                        ]}
+                      >
+                        {mealDataStatus}
+                      </Text>
                     ) : null}
                   </>
                 )}
@@ -1682,12 +1724,16 @@ export default function ProfileScreen() {
                     isActive && styles.dashboardFloatingNavButtonActive,
                   ]}
                   onPress={() => setDashboardSection(section.value)}
+                  accessibilityRole="tab"
+                  accessibilityLabel={`${section.label} section`}
+                  accessibilityState={{ selected: isActive }}
                 >
                   <Text
                     style={[
                       styles.dashboardFloatingNavText,
                       isActive && styles.dashboardFloatingNavTextActive,
                     ]}
+                    numberOfLines={1}
                   >
                     {section.label}
                   </Text>
@@ -1873,6 +1919,9 @@ export default function ProfileScreen() {
         key={label}
         style={[styles.optionCard, isSelected && styles.selectedOptionCard]}
         onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ selected: isSelected }}
       >
         <View style={[styles.selectionDot, isSelected && styles.selectedSelectionDot]}>
           {isSelected ? <View style={styles.selectionDotInner} /> : null}
@@ -1991,6 +2040,10 @@ export default function ProfileScreen() {
               {renderStepContent()}
             </ScrollView>
 
+            {profileSaveStatus ? (
+              <Text style={styles.profileSaveStatus}>{profileSaveStatus}</Text>
+            ) : null}
+
             <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
               <Pressable
                 style={[
@@ -1999,6 +2052,8 @@ export default function ProfileScreen() {
                 ]}
                 onPress={handlePreviousStep}
                 disabled={currentStepIndex === 0}
+                accessibilityRole="button"
+                accessibilityLabel="Previous profile step"
               >
                 <Text style={styles.secondaryButtonText}>Back</Text>
               </Pressable>
@@ -2010,6 +2065,10 @@ export default function ProfileScreen() {
                 ]}
                 onPress={isReviewStep ? handleSaveProfile : handleNextStep}
                 disabled={!canContinue}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isReviewStep ? "Save nutrition profile" : "Continue profile setup"
+                }
               >
                 <Text style={styles.primaryButtonText}>
                   {isReviewStep ? "Save Nutrition Profile" : "Continue"}
@@ -2413,14 +2472,6 @@ const styles = StyleSheet.create({
     gap: 14,
   },
 
-  dashboardHeaderCard: {
-    minHeight: 0,
-  },
-
-  dashboardSectionContent: {
-    gap: 14,
-  },
-
   summarySectionContent: {
     gap: 14,
   },
@@ -2436,6 +2487,7 @@ const styles = StyleSheet.create({
 
   summaryHeroTextGroup: {
     flex: 1,
+    minWidth: 0,
   },
 
   summaryHeroBadge: {
@@ -2507,15 +2559,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  summaryCardBadgeText: {
-    fontSize: 18,
-    lineHeight: 22,
-    fontWeight: "900",
-    color: "#b08a3c",
-  },
-
   summaryCardTitleGroup: {
     flex: 1,
+    minWidth: 0,
   },
 
   summaryCardTitle: {
@@ -2606,6 +2652,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+    flexShrink: 0,
   },
 
   profileSnapshotDot: {
@@ -2843,25 +2890,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#b08a3c",
   },
 
-  progressEmptyRing: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 10,
-    borderColor: "#e5e7eb",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  progressEmptyRingText: {
-    width: 62,
-    textAlign: "center",
-    fontSize: 12,
-    lineHeight: 15,
-    fontWeight: "900",
-    color: "#6b7280",
-  },
-
   progressEmptyStateIcon: {
     alignSelf: "center",
     width: 62,
@@ -2888,17 +2916,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: "#555",
     marginBottom: 16,
-  },
-
-  progressDisabledButton: {
-    backgroundColor: "#f3f4f6",
-  },
-
-  progressDisabledButtonText: {
-    fontSize: 15,
-    lineHeight: 20,
-    fontWeight: "900",
-    color: "#6b7280",
   },
 
   mealTargetPreviewGrid: {
@@ -2932,6 +2949,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: 10,
+    minWidth: 0,
   },
 
   mealTargetLabel: {
@@ -2946,45 +2964,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     fontWeight: "900",
     color: "#111",
-  },
-
-  mealsDisabledButton: {
-    backgroundColor: "#f3f4f6",
-  },
-
-  mealsDisabledButtonText: {
-    fontSize: 16,
-    lineHeight: 21,
-    fontWeight: "900",
-    color: "#6b7280",
-  },
-
-  mealsEmptyPreview: {
-    alignItems: "center",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: "#d9dde3",
-    backgroundColor: "#f9fafb",
-    paddingVertical: 22,
-    paddingHorizontal: 16,
-  },
-
-  mealsEmptyTitle: {
-    fontSize: 17,
-    lineHeight: 22,
-    fontWeight: "900",
-    color: "#111",
-    marginTop: 10,
-    marginBottom: 6,
-    textAlign: "center",
-  },
-
-  mealsEmptyText: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: "#555",
-    textAlign: "center",
   },
 
   mealRecordList: {
@@ -3067,32 +3046,22 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#166534",
   },
+  errorStatus: {
+    color: "#b91c1c",
+  },
+  profileSaveStatus: {
+    textAlign: "center",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#b91c1c",
+  },
 
   preferenceChipGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
     marginBottom: 14,
-  },
-
-  preferencePreviewChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#ead8b6",
-    backgroundColor: "#fffaf0",
-    paddingVertical: 10,
-    paddingHorizontal: 13,
-    opacity: 0.82,
-  },
-
-  preferencePreviewChipText: {
-    fontSize: 14,
-    lineHeight: 18,
-    fontWeight: "800",
-    color: "#6b4f16",
   },
 
   preferenceEditChip: {
@@ -3198,15 +3167,16 @@ const styles = StyleSheet.create({
 
   dashboardFloatingNavBlur: {
     flexDirection: "row",
-    gap: 4,
-    padding: 7,
+    gap: 3,
+    padding: 6,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
 
   dashboardFloatingNavButton: {
     flex: 1,
     borderRadius: 18,
-    paddingVertical: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 2,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -3220,19 +3190,15 @@ const styles = StyleSheet.create({
   },
 
   dashboardFloatingNavText: {
-    fontSize: 12,
+    fontSize: 11,
     lineHeight: 16,
     fontWeight: "800",
     color: "#6b7280",
+    textAlign: "center",
   },
 
   dashboardFloatingNavTextActive: {
     color: "#fff",
-  },
-
-  dashboardActions: {
-    gap: 12,
-    marginTop: 18,
   },
 
   bottomBar: {
