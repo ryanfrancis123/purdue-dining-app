@@ -23,6 +23,17 @@ import {
 import { getMenuItems } from "../src/services/menuRepository";
 import { recommendMeals } from "../src/utils/recommendMeals";
 import { loadPersistedNutritionProfile } from "../src/utils/profileStorage";
+import type { PersistedMealData } from "../src/types/meals";
+import {
+  EMPTY_MEAL_DATA,
+  loadPersistedMealData,
+  savePersistedMealData,
+} from "../src/utils/mealStorage";
+import {
+  createMealLogFromRecommendation,
+  createSavedMealFromRecommendation,
+  getMealDuplicateKey,
+} from "../src/utils/mealSnapshots";
 import {
   MenuItem,
   MealPeriod,
@@ -172,6 +183,8 @@ export default function ManualRecommendationScreen() {
   const [selectedMeal, setSelectedMeal] = useState<MealRecommendation | null>(
     null
   );
+  const [mealData, setMealData] = useState<PersistedMealData>(EMPTY_MEAL_DATA);
+  const [mealActionStatus, setMealActionStatus] = useState<string | null>(null);
   const sheetSlideAnim = useRef(new Animated.Value(400)).current;
 
   useEffect(() => {
@@ -197,7 +210,26 @@ export default function ManualRecommendationScreen() {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+
+    async function loadMealData() {
+      const persistedMealData = await loadPersistedMealData();
+
+      if (isMounted) {
+        setMealData(persistedMealData);
+      }
+    }
+
+    loadMealData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (selectedMeal) {
+      setMealActionStatus(null);
       sheetSlideAnim.setValue(400);
 
       Animated.timing(sheetSlideAnim, {
@@ -310,6 +342,55 @@ export default function ManualRecommendationScreen() {
       );
     } else {
       setExcludedAllergens([...excludedAllergens, allergen]);
+    }
+  }
+
+  function isMealSaved(meal: MealRecommendation) {
+    const duplicateKey = getMealDuplicateKey(meal.items.map((item) => item.id));
+
+    return mealData.savedMeals.some(
+      (savedMeal) => getMealDuplicateKey(savedMeal.itemIds) === duplicateKey
+    );
+  }
+
+  async function handleSaveSelectedMeal() {
+    if (selectedMeal === null) {
+      return;
+    }
+
+    if (isMealSaved(selectedMeal)) {
+      setMealActionStatus("Already saved");
+      return;
+    }
+
+    const savedMeal = createSavedMealFromRecommendation(selectedMeal);
+    const nextMealData: PersistedMealData = {
+      ...mealData,
+      savedMeals: [savedMeal, ...mealData.savedMeals],
+    };
+    const didSave = await savePersistedMealData(nextMealData);
+
+    if (didSave) {
+      setMealData(nextMealData);
+      setMealActionStatus("Meal saved");
+    }
+  }
+
+  async function handleLogSelectedMeal() {
+    if (selectedMeal === null) {
+      return;
+    }
+
+    const mealLog = createMealLogFromRecommendation(selectedMeal);
+    const nextMealData: PersistedMealData = {
+      ...mealData,
+      mealLogs: [mealLog, ...mealData.mealLogs],
+    };
+    const didSave = await savePersistedMealData(nextMealData);
+
+    if (didSave) {
+      setMealData(nextMealData);
+      setMealActionStatus("Meal logged");
     }
   }
 
@@ -747,6 +828,37 @@ export default function ManualRecommendationScreen() {
                         {selectedMeal.explanation}
                     </Text>
                     </View>
+
+                    <View style={styles.sheetActionRow}>
+                    <Pressable
+                        style={[
+                        styles.sheetActionButton,
+                        isMealSaved(selectedMeal) && styles.sheetActionButtonDisabled,
+                        ]}
+                        onPress={handleSaveSelectedMeal}
+                        disabled={isMealSaved(selectedMeal)}
+                    >
+                        <Text
+                        style={[
+                            styles.sheetActionButtonText,
+                            isMealSaved(selectedMeal) &&
+                            styles.sheetActionButtonTextDisabled,
+                        ]}
+                        >
+                        {isMealSaved(selectedMeal) ? "Already Saved" : "Save Meal"}
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        style={styles.sheetActionButton}
+                        onPress={handleLogSelectedMeal}
+                    >
+                        <Text style={styles.sheetActionButtonText}>Log Meal</Text>
+                    </Pressable>
+                    </View>
+
+                    {mealActionStatus ? (
+                    <Text style={styles.sheetActionStatus}>{mealActionStatus}</Text>
+                    ) : null}
                 </>
                 ) : null}
             </Animated.View>
@@ -1035,6 +1147,39 @@ sheetExplanation: {
   fontSize: 16,
   lineHeight: 23,
   color: "#4b5563",
+},
+sheetActionRow: {
+  marginTop: 22,
+  flexDirection: "row",
+  gap: 10,
+},
+sheetActionButton: {
+  flex: 1,
+  borderRadius: 14,
+  backgroundColor: "#111827",
+  paddingVertical: 13,
+  alignItems: "center",
+  justifyContent: "center",
+},
+sheetActionButtonDisabled: {
+  backgroundColor: "#f3f4f6",
+},
+sheetActionButtonText: {
+  fontSize: 15,
+  lineHeight: 20,
+  fontWeight: "800",
+  color: "#ffffff",
+},
+sheetActionButtonTextDisabled: {
+  color: "#6b7280",
+},
+sheetActionStatus: {
+  marginTop: 10,
+  textAlign: "center",
+  fontSize: 13,
+  lineHeight: 18,
+  fontWeight: "800",
+  color: "#166534",
 },
 sheetItemMacros: {
   marginTop: 4,

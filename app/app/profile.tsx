@@ -1,7 +1,7 @@
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { BlurView } from "expo-blur";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ComponentProps } from "react";
 import {
   ActivityIndicator,
@@ -37,6 +37,13 @@ import {
   type UnitSystem,
 } from "../src/utils/profileStorage";
 import { estimateMealMacroTarget } from "../src/utils/profileTargets";
+import type { PersistedMealData, SavedMeal, MealLogEntry } from "../src/types/meals";
+import {
+  EMPTY_MEAL_DATA,
+  loadPersistedMealData,
+  savePersistedMealData,
+} from "../src/utils/mealStorage";
+import { createMealLogFromSavedMeal } from "../src/utils/mealSnapshots";
 import type { Allergen, DiningHall } from "../src/types/menu";
 import type {
   ActivityLevel,
@@ -159,6 +166,8 @@ export default function ProfileScreen() {
   const [preferenceSaveStatus, setPreferenceSaveStatus] = useState<string | null>(
     null
   );
+  const [mealData, setMealData] = useState<PersistedMealData>(EMPTY_MEAL_DATA);
+  const [mealDataStatus, setMealDataStatus] = useState<string | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [dashboardSection, setDashboardSection] =
     useState<DashboardSection>("summary");
@@ -191,6 +200,26 @@ export default function ProfileScreen() {
 
     loadStoredProfile();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      async function refreshMealData() {
+        const persistedMealData = await loadPersistedMealData();
+
+        if (isActive) {
+          setMealData(persistedMealData);
+        }
+      }
+
+      refreshMealData();
+
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   const currentStep = PROFILE_STEPS[currentStepIndex];
   const isReviewStep = currentStep === "review";
@@ -715,6 +744,181 @@ export default function ProfileScreen() {
     );
   }
 
+  function getMealItemNames(meal: SavedMeal | MealLogEntry) {
+    return meal.items.map((item) => item.name).join(" + ");
+  }
+
+  function getMealDiningHallLabel(meal: SavedMeal | MealLogEntry) {
+    const diningHalls = Array.from(
+      new Set(meal.items.map((item) => item.diningHall))
+    );
+
+    return diningHalls.length === 1 ? diningHalls[0] : "Multiple locations";
+  }
+
+  function getMealPeriodLabel(meal: SavedMeal | MealLogEntry) {
+    const firstSpecificMealPeriod = meal.items.find(
+      (item) => item.mealPeriod !== "all_day"
+    )?.mealPeriod;
+
+    return firstSpecificMealPeriod
+      ? formatProfileLabel(firstSpecificMealPeriod)
+      : "All Day";
+  }
+
+  function formatStoredDate(value: string) {
+    const [year, month, day] = value.split("-");
+
+    if (!year || !month || !day) {
+      return value;
+    }
+
+    return `${month}/${day}/${year}`;
+  }
+
+  function formatStoredTime(value: string) {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  async function handleLogSavedMeal(savedMeal: SavedMeal) {
+    const mealLog = createMealLogFromSavedMeal(savedMeal);
+    const nextMealData: PersistedMealData = {
+      ...mealData,
+      mealLogs: [mealLog, ...mealData.mealLogs],
+    };
+    const didSave = await savePersistedMealData(nextMealData);
+
+    if (didSave) {
+      setMealData(nextMealData);
+      setMealDataStatus("Meal logged");
+    }
+  }
+
+  function handleRemoveSavedMeal(savedMeal: SavedMeal) {
+    Alert.alert(
+      "Remove saved meal?",
+      "This removes the saved meal from this device. Previous meal logs will stay.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            const nextMealData: PersistedMealData = {
+              ...mealData,
+              savedMeals: mealData.savedMeals.filter(
+                (meal) => meal.id !== savedMeal.id
+              ),
+            };
+            const didSave = await savePersistedMealData(nextMealData);
+
+            if (didSave) {
+              setMealData(nextMealData);
+              setMealDataStatus("Saved meal removed");
+            }
+          },
+        },
+      ]
+    );
+  }
+
+  function handleRemoveMealLog(mealLog: MealLogEntry) {
+    Alert.alert(
+      "Remove meal log?",
+      "This removes only this logged meal entry from this device.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            const nextMealData: PersistedMealData = {
+              ...mealData,
+              mealLogs: mealData.mealLogs.filter((entry) => entry.id !== mealLog.id),
+            };
+            const didSave = await savePersistedMealData(nextMealData);
+
+            if (didSave) {
+              setMealData(nextMealData);
+              setMealDataStatus("Meal log removed");
+            }
+          },
+        },
+      ]
+    );
+  }
+
+  function renderSavedMealCard(savedMeal: SavedMeal) {
+    return (
+      <View key={savedMeal.id} style={styles.mealRecordCard}>
+        <Text style={styles.mealRecordTitle}>{getMealItemNames(savedMeal)}</Text>
+        <Text style={styles.mealRecordMeta}>
+          {getMealDiningHallLabel(savedMeal)} · {getMealPeriodLabel(savedMeal)} · Saved{" "}
+          {formatStoredDate(savedMeal.localDate)}
+        </Text>
+        <Text style={styles.mealRecordMacros}>
+          {savedMeal.totalCalories} cal · {savedMeal.totalProtein}g protein ·{" "}
+          {savedMeal.totalCarbs}g carbs
+        </Text>
+        <View style={styles.mealRecordActionRow}>
+          <Pressable
+            style={styles.mealRecordPrimaryAction}
+            onPress={() => handleLogSavedMeal(savedMeal)}
+          >
+            <Text style={styles.mealRecordPrimaryActionText}>Log Again</Text>
+          </Pressable>
+          <Pressable
+            style={styles.mealRecordSecondaryAction}
+            onPress={() => handleRemoveSavedMeal(savedMeal)}
+          >
+            <Text style={styles.mealRecordSecondaryActionText}>Remove</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  function renderMealLogCard(mealLog: MealLogEntry) {
+    const loggedTime = formatStoredTime(mealLog.loggedAt);
+
+    return (
+      <View key={mealLog.id} style={styles.mealRecordCard}>
+        <Text style={styles.mealRecordTitle}>{getMealItemNames(mealLog)}</Text>
+        <Text style={styles.mealRecordMeta}>
+          {formatStoredDate(mealLog.localDate)}
+          {loggedTime ? ` · ${loggedTime}` : ""}
+        </Text>
+        <Text style={styles.mealRecordMacros}>
+          {mealLog.totalCalories} cal · {mealLog.totalProtein}g protein ·{" "}
+          {mealLog.totalCarbs}g carbs
+        </Text>
+        <View style={styles.mealRecordActionRow}>
+          <Pressable
+            style={styles.mealRecordSecondaryAction}
+            onPress={() => handleRemoveMealLog(mealLog)}
+          >
+            <Text style={styles.mealRecordSecondaryActionText}>Remove</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
   function renderPreferencePreviewChip({
     iconName,
     label,
@@ -1033,14 +1237,23 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Saved Meals</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Saved meals coming later
+                      Meals you saved on this device
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.dashboardPlaceholderBody}>
-                  Saved dining combinations will appear here after saved meals are
-                  added.
-                </Text>
+                {mealData.savedMeals.length === 0 ? (
+                  <Text style={styles.dashboardPlaceholderBody}>
+                    Saved dining combinations will appear here after saved meals are
+                    added.
+                  </Text>
+                ) : (
+                  <View style={styles.mealRecordList}>
+                    {mealData.savedMeals.map(renderSavedMealCard)}
+                  </View>
+                )}
+                {mealDataStatus ? (
+                  <Text style={styles.mealDataStatus}>{mealDataStatus}</Text>
+                ) : null}
               </View>
             </View>
           );
@@ -1260,19 +1473,37 @@ export default function ProfileScreen() {
               </View>
 
               <View style={styles.summaryCard}>
-                <View style={styles.progressEmptyStateIcon}>
-                  <MaterialIcons name="event-note" size={34} color="#b08a3c" />
-                </View>
-                <Text style={styles.progressEmptyTitle}>No meals logged yet.</Text>
-                <Text style={styles.progressEmptyText}>
-                  Logged meals will appear here once meal logging is added.
-                </Text>
-                <Pressable style={[styles.summaryEditButton, styles.progressDisabledButton]} disabled>
-                  <MaterialIcons name="lock" size={18} color="#6b7280" />
-                  <Text style={styles.progressDisabledButtonText}>
-                    Meal logging coming later
-                  </Text>
-                </Pressable>
+                {mealData.mealLogs.length === 0 ? (
+                  <>
+                    <View style={styles.progressEmptyStateIcon}>
+                      <MaterialIcons name="event-note" size={34} color="#b08a3c" />
+                    </View>
+                    <Text style={styles.progressEmptyTitle}>No meals logged yet.</Text>
+                    <Text style={styles.progressEmptyText}>
+                      Logged meals will appear here after you log a recommendation.
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.summaryCardHeader}>
+                      <View style={styles.summaryCardBadge}>
+                        <MaterialIcons name="event-note" size={24} color="#b08a3c" />
+                      </View>
+                      <View style={styles.summaryCardTitleGroup}>
+                        <Text style={styles.summaryCardTitle}>Recent Meal Log</Text>
+                        <Text style={styles.summaryCardSubtitle}>
+                          Newest logged meals on this device
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.mealRecordList}>
+                      {mealData.mealLogs.slice(0, 5).map(renderMealLogCard)}
+                    </View>
+                    {mealDataStatus ? (
+                      <Text style={styles.mealDataStatus}>{mealDataStatus}</Text>
+                    ) : null}
+                  </>
+                )}
               </View>
 
               {renderDashboardPlaceholderCard({
@@ -2541,6 +2772,87 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     color: "#555",
     textAlign: "center",
+  },
+
+  mealRecordList: {
+    gap: 10,
+  },
+
+  mealRecordCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#edf0f3",
+    backgroundColor: "#fffdf9",
+    padding: 14,
+  },
+
+  mealRecordTitle: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: "900",
+    color: "#111",
+  },
+
+  mealRecordMeta: {
+    marginTop: 5,
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#6b7280",
+  },
+
+  mealRecordMacros: {
+    marginTop: 7,
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "800",
+    color: "#4b5563",
+  },
+
+  mealRecordActionRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    gap: 9,
+  },
+
+  mealRecordPrimaryAction: {
+    flex: 1,
+    borderRadius: 12,
+    backgroundColor: "#111",
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+
+  mealRecordPrimaryActionText: {
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "900",
+    color: "#f2c766",
+  },
+
+  mealRecordSecondaryAction: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+
+  mealRecordSecondaryActionText: {
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "900",
+    color: "#111",
+  },
+
+  mealDataStatus: {
+    marginTop: 10,
+    textAlign: "center",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#166534",
   },
 
   preferenceChipGrid: {
