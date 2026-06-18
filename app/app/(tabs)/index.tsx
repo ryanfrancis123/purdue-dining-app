@@ -1,9 +1,55 @@
 import { router } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { loadPersistedNutritionProfile } from "../../src/utils/profileStorage";
 
 export default function HomeScreen() {
+  const [isCheckingProfile, setIsCheckingProfile] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkStoredProfile() {
+      try {
+        const storedProfile = await loadPersistedNutritionProfile();
+
+        if (storedProfile !== null) {
+          router.replace("/profile");
+          return;
+        }
+      } catch (error) {
+        console.warn("Could not check saved profile.", error);
+      }
+
+      if (isMounted) {
+        setIsCheckingProfile(false);
+      }
+    }
+
+    checkStoredProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (isCheckingProfile) {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.loadingContainer]}>
+        <ActivityIndicator color="#111827" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -116,5 +162,9 @@ const styles = StyleSheet.create({
   safeArea: {
   flex: 1,
   backgroundColor: "#f9fafb",
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

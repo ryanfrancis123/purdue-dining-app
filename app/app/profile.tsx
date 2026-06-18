@@ -1,9 +1,11 @@
 import { router } from "expo-router";
 import { BlurView } from "expo-blur";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ComponentProps } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -20,6 +22,12 @@ import {
   NUTRITION_GOAL_OPTIONS,
   SEX_OPTIONS,
 } from "../src/constants/profileOptions";
+import {
+  loadPersistedNutritionProfile,
+  removePersistedNutritionProfile,
+  savePersistedNutritionProfile,
+  type UnitSystem,
+} from "../src/utils/profileStorage";
 import { estimateMealMacroTarget } from "../src/utils/profileTargets";
 import type { ActivityLevel, NutritionGoal, NutritionProfile, Sex } from "../src/types/profile";
 
@@ -29,8 +37,6 @@ const AGE_MIN = 16;
 const AGE_MAX = 80;
 const AGE_DEFAULT = 18;
 const WHEEL_ITEM_HEIGHT = 52;
-
-type UnitSystem = "us" | "metric";
 
 type ProfileStep =
   | "intro"
@@ -119,6 +125,7 @@ function poundsToKilograms(weightLb: number) {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [displayName, setDisplayName] = useState("");
   const [age, setAge] = useState<number | null>(AGE_DEFAULT);
@@ -134,6 +141,34 @@ export default function ProfileScreen() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [dashboardSection, setDashboardSection] =
     useState<DashboardSection>("summary");
+
+  useEffect(() => {
+    async function loadStoredProfile() {
+      try {
+        const storedProfile = await loadPersistedNutritionProfile();
+
+        if (storedProfile === null) {
+          return;
+        }
+
+        setSavedProfile(storedProfile.profile);
+        setDisplayName(storedProfile.profile.displayName ?? "");
+        setAge(storedProfile.profile.age);
+        setHeightCm(storedProfile.profile.heightCm);
+        setWeightKg(storedProfile.profile.weightKg);
+        setUnitSystem(storedProfile.unitSystem);
+        setSex(storedProfile.profile.sex);
+        setActivityLevel(storedProfile.profile.activityLevel);
+        setGoal(storedProfile.profile.goal);
+      } catch (error) {
+        console.warn("Could not load saved profile.", error);
+      } finally {
+        setIsProfileLoading(false);
+      }
+    }
+
+    loadStoredProfile();
+  }, []);
 
   const currentStep = PROFILE_STEPS[currentStepIndex];
   const isReviewStep = currentStep === "review";
@@ -165,6 +200,44 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleResetProfile = () => {
+    Alert.alert(
+      "Reset Nutrition Profile?",
+      "This will remove your saved nutrition profile and local profile setup from this device.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Reset",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await removePersistedNutritionProfile();
+
+              setSavedProfile(null);
+              setDisplayName("");
+              setAge(AGE_DEFAULT);
+              setHeightCm(null);
+              setWeightKg(null);
+              setSex(null);
+              setActivityLevel(null);
+              setGoal(null);
+              setUnitSystem("us");
+              setCurrentStep("intro");
+              setIsEditingProfile(false);
+              setDashboardSection("summary");
+              router.replace("/");
+            } catch (error) {
+              console.warn("Could not reset profile.", error);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleSaveProfile = () => {
     if (sex === null || activityLevel === null || goal === null) {
       return;
@@ -184,6 +257,10 @@ export default function ProfileScreen() {
 
     setSavedProfile(profile);
     setIsEditingProfile(false);
+
+    savePersistedNutritionProfile(profile, unitSystem).catch((error) => {
+      console.warn("Could not save profile.", error);
+    });
   };
 
   const setUsHeight = (part: "feet" | "inches", value: number) => {
@@ -595,6 +672,23 @@ export default function ProfileScreen() {
     );
   }
 
+  function renderResetProfileRow() {
+    return (
+      <Pressable
+        style={styles.preferenceSettingsRow}
+        onPress={handleResetProfile}
+        accessibilityRole="button"
+        accessibilityLabel="Reset Nutrition Profile"
+      >
+        <View style={styles.preferenceSettingsLabelGroup}>
+          <MaterialIcons name="delete-outline" size={20} color="#b91c1c" />
+          <Text style={styles.preferenceResetLabel}>Reset Nutrition Profile</Text>
+        </View>
+        <MaterialIcons name="chevron-right" size={21} color="#b91c1c" />
+      </Pressable>
+    );
+  }
+
   function renderProfileDashboard() {
     if (savedProfile === null) {
       return null;
@@ -1000,6 +1094,7 @@ export default function ProfileScreen() {
                     iconName: "settings",
                     label: "App Preferences",
                   })}
+                  {renderResetProfileRow()}
                 </View>
               </View>
             </View>
@@ -1387,6 +1482,14 @@ export default function ProfileScreen() {
     );
   }
 
+  if (isProfileLoading) {
+    return (
+      <View style={[styles.safeArea, styles.loadingContainer]}>
+        <ActivityIndicator color="#111" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.safeArea}>
       {shouldShowDashboard ? null : (
@@ -1467,6 +1570,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#f9fafb",
+  },
+
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   container: {
@@ -2398,6 +2506,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: "800",
     color: "#111",
+  },
+
+  preferenceResetLabel: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "800",
+    color: "#b91c1c",
   },
 
   preferenceSettingsStatus: {
