@@ -365,7 +365,7 @@ export default function ProfileScreen() {
             <Text style={styles.eyebrow}>Review</Text>
             <Text style={styles.stepTitle}>Ready to save this profile?</Text>
             <Text style={styles.stepBody}>
-              Review your answers before saving this profile for now.
+              Review your details before saving your profile.
             </Text>
 
             <View style={styles.reviewList}>
@@ -610,8 +610,13 @@ export default function ProfileScreen() {
     const dashboardActivityOption = ACTIVITY_DISPLAY_OPTIONS.find(
       (option) => option.value === savedProfile.activityLevel
     );
-    const dashboardTitle = savedProfile.displayName
-      ? `Welcome back, ${savedProfile.displayName}`
+    const rawSavedDisplayName = savedProfile.displayName?.trim();
+    const savedDisplayName =
+      rawSavedDisplayName && rawSavedDisplayName.length > 24
+        ? `${rawSavedDisplayName.slice(0, 24)}...`
+        : rawSavedDisplayName;
+    const dashboardTitle = savedDisplayName
+      ? `Welcome back, ${savedDisplayName}`
       : "Your Nutrition Hub";
 
     const renderDashboardSectionContent = () => {
@@ -834,7 +839,7 @@ export default function ProfileScreen() {
                 iconName: "tune",
                 title: "Preferences",
                 body:
-                  "Manage the choices that will later shape your dining recommendations.",
+                  "Preview the preference types you will be able to set later.",
               })}
 
               <View style={styles.summaryCard}>
@@ -845,31 +850,30 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Dietary Preferences</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Options can be configured later
+                      Example diet-style options for future setup
                     </Text>
                   </View>
                 </View>
                 <View style={styles.preferenceChipGrid}>
                   {renderPreferencePreviewChip({
                     iconName: "eco",
-                    label: "Vegetarian",
+                    label: "Diet style",
                   })}
                   {renderPreferencePreviewChip({
                     iconName: "spa",
-                    label: "Vegan",
+                    label: "Plant-forward",
                   })}
                   {renderPreferencePreviewChip({
                     iconName: "brightness-2",
-                    label: "Halal",
+                    label: "Religious needs",
                   })}
                   {renderPreferencePreviewChip({
                     iconName: "grain",
-                    label: "Gluten Free",
+                    label: "Ingredient limits",
                   })}
                 </View>
                 <Text style={styles.dashboardPlaceholderBody}>
-                  Dietary preference choices will shape recommendations once preference
-                  setup is added.
+                  These are examples of preferences you will be able to set later.
                 </Text>
               </View>
 
@@ -881,26 +885,26 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Allergens & Restrictions</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Allergy and dietary filters can be reviewed here later
+                      Example safety filters for future setup
                     </Text>
                   </View>
                 </View>
                 <View style={styles.preferenceChipGrid}>
                   {renderPreferencePreviewChip({
                     iconName: "warning",
-                    label: "Peanuts",
+                    label: "Allergens",
                   })}
                   {renderPreferencePreviewChip({
                     iconName: "park",
-                    label: "Tree Nuts",
+                    label: "Cross-contact",
                   })}
                   {renderPreferencePreviewChip({
                     iconName: "local-drink",
-                    label: "Dairy",
+                    label: "Diet restrictions",
                   })}
                   {renderPreferencePreviewChip({
                     iconName: "egg",
-                    label: "Eggs",
+                    label: "Ingredient alerts",
                   })}
                 </View>
               </View>
@@ -913,12 +917,12 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Favorite Dining Halls</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Favorite locations can be chosen later
+                      Example location preferences for future setup
                     </Text>
                   </View>
                 </View>
                 <View style={styles.preferenceChipGrid}>
-                  {["Wiley", "Ford", "Earhart", "Hillenbrand"].map((hall) =>
+                  {["Dining halls", "Nearby spots", "Frequent stops", "Avoid list"].map((hall) =>
                     renderPreferencePreviewChip({
                       iconName: "restaurant",
                       label: hall,
@@ -935,26 +939,26 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Meal Style Preferences</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Meal style choices can be configured later
+                      Example meal-style options for future setup
                     </Text>
                   </View>
                 </View>
                 <View style={styles.preferenceChipGrid}>
                   {renderPreferencePreviewChip({
                     iconName: "fitness-center",
-                    label: "High Protein",
+                    label: "Protein focus",
                   })}
                   {renderPreferencePreviewChip({
                     iconName: "balance",
-                    label: "Balanced",
+                    label: "Balance style",
                   })}
                   {renderPreferencePreviewChip({
                     iconName: "eco",
-                    label: "Low Carb",
+                    label: "Macro focus",
                   })}
                   {renderPreferencePreviewChip({
                     iconName: "sentiment-satisfied",
-                    label: "Comfort Food",
+                    label: "Meal mood",
                   })}
                 </View>
               </View>
