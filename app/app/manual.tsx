@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { BlurView } from "expo-blur";
 import {
   Animated,
@@ -83,12 +83,70 @@ const TARGET_PRESETS: TargetPreset[] = [
   },
 ];
 
+function parsePositiveNumberParam(value: string | string[] | undefined) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+
+  if (trimmedValue.length === 0) {
+    return null;
+  }
+
+  const parsedValue = Number(trimmedValue);
+
+  if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+    return null;
+  }
+
+  return {
+    inputValue: trimmedValue,
+    numericValue: parsedValue,
+  };
+}
+
 export default function ManualRecommendationScreen() {
   const insets = useSafeAreaInsets();
-  const [caloriesInput, setCaloriesInput] = useState("600");
-  const [proteinInput, setProteinInput] = useState("40");
-  const [carbsInput, setCarbsInput] = useState("60");
-  const [selectedPresetId, setSelectedPresetId] = useState<TargetPresetId>("balanced");
+  const params = useLocalSearchParams<{
+    calories?: string | string[];
+    protein?: string | string[];
+    carbs?: string | string[];
+  }>();
+  const routeCalories = parsePositiveNumberParam(params.calories);
+  const routeProtein = parsePositiveNumberParam(params.protein);
+  const routeCarbs = parsePositiveNumberParam(params.carbs);
+  const hasValidRouteTargets =
+    routeCalories !== null && routeProtein !== null && routeCarbs !== null;
+  const initialTargets = hasValidRouteTargets
+    ? {
+        caloriesInput: routeCalories.inputValue,
+        proteinInput: routeProtein.inputValue,
+        carbsInput: routeCarbs.inputValue,
+        selectedPresetId: "custom" as TargetPresetId,
+        targets: {
+          calories: routeCalories.numericValue,
+          protein: routeProtein.numericValue,
+          carbs: routeCarbs.numericValue,
+        },
+      }
+    : {
+        caloriesInput: "600",
+        proteinInput: "40",
+        carbsInput: "60",
+        selectedPresetId: "balanced" as TargetPresetId,
+        targets: {
+          calories: 600,
+          protein: 40,
+          carbs: 60,
+        },
+      };
+  const [caloriesInput, setCaloriesInput] = useState(initialTargets.caloriesInput);
+  const [proteinInput, setProteinInput] = useState(initialTargets.proteinInput);
+  const [carbsInput, setCarbsInput] = useState(initialTargets.carbsInput);
+  const [selectedPresetId, setSelectedPresetId] = useState<TargetPresetId>(
+    initialTargets.selectedPresetId
+  );
   const [selectedMealPeriod, setSelectedMealPeriod] = useState<
     MealPeriod | undefined
   >(undefined);
@@ -151,11 +209,7 @@ export default function ManualRecommendationScreen() {
     "Hillenbrand",
   ];
 
-  const [targets, setTargets] = useState<MacroTargets>({
-    calories: 600,
-    protein: 40,
-    carbs: 60,
-  });
+  const [targets, setTargets] = useState<MacroTargets>(initialTargets.targets);
 
   const recommendations = recommendMeals(
     menuItems,

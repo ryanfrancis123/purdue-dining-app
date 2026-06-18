@@ -782,9 +782,21 @@ export default function ProfileScreen() {
                   })}
                 </View>
 
-                <Pressable style={[styles.summaryEditButton, styles.mealsDisabledButton]} disabled>
-                  <Text style={styles.mealsDisabledButtonText}>Use These Targets</Text>
-                  <MaterialIcons name="lock" size={18} color="#6b7280" />
+                <Pressable
+                  style={styles.summaryEditButton}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/manual",
+                      params: {
+                        calories: String(dashboardTarget.calories),
+                        protein: String(dashboardTarget.proteinGrams),
+                        carbs: String(dashboardTarget.carbsGrams),
+                      },
+                    })
+                  }
+                >
+                  <Text style={styles.summaryEditButtonText}>Use These Targets</Text>
+                  <MaterialIcons name="arrow-forward" size={18} color="#f2c766" />
                 </Pressable>
               </View>
 
