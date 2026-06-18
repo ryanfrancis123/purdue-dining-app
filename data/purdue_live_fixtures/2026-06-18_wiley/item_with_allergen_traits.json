@@ -1,0 +1,185 @@
+{
+  "data": {
+    "itemByItemId": {
+      "appearances": [
+        {
+          "date": "2026-06-18T07:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Breakfast",
+          "stationName": "Classic Flavors"
+        },
+        {
+          "date": "2026-06-19T07:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Breakfast",
+          "stationName": "Classic Flavors"
+        },
+        {
+          "date": "2026-06-20T07:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Breakfast",
+          "stationName": "Classic Flavors"
+        },
+        {
+          "date": "2026-06-23T07:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Breakfast",
+          "stationName": "Classic Flavors"
+        },
+        {
+          "date": "2026-06-23T07:00:00-04:00",
+          "locationName": "Earhart",
+          "mealName": "Breakfast",
+          "stationName": "Granite Grill"
+        },
+        {
+          "date": "2026-06-24T07:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Breakfast",
+          "stationName": "Classic Flavors"
+        },
+        {
+          "date": "2026-06-26T07:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Breakfast",
+          "stationName": "Classic Flavors"
+        },
+        {
+          "date": "2026-06-27T07:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Breakfast",
+          "stationName": "Classic Flavors"
+        },
+        {
+          "date": "2026-06-27T07:00:00-04:00",
+          "locationName": "Earhart",
+          "mealName": "Breakfast",
+          "stationName": "Granite Grill"
+        },
+        {
+          "date": "2026-06-29T07:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Breakfast",
+          "stationName": "Classic Flavors"
+        },
+        {
+          "date": "2026-07-01T07:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Breakfast",
+          "stationName": "Classic Flavors"
+        }
+      ],
+      "components": null,
+      "ingredients": "Potato Hash Brown Triangle 2oz (Potatoes, Vegetable Oil (Soybean, Canola, And/Or Cottonseed Oils), Contains Less Than 2% Of Dextrose, Salt, Disodium Dihydrogen Pyrophosphate (To Maintain Natural Color).), Iodized Salt (Salt, Sodium Silicoaluminate, Dextrose, Potassium Iodine.)",
+      "isNutritionReady": true,
+      "itemId": "0bc9d39f-5e44-47df-820b-64f0c23c551d",
+      "name": "Hash Brown",
+      "nutritionFacts": [
+        {
+          "dailyValueLabel": null,
+          "label": "Each",
+          "name": "Serving Size",
+          "value": null
+        },
+        {
+          "dailyValueLabel": null,
+          "label": "88",
+          "name": "Calories",
+          "value": 88.0454
+        },
+        {
+          "dailyValueLabel": null,
+          "label": "36",
+          "name": "Calories from fat",
+          "value": null
+        },
+        {
+          "dailyValueLabel": "5%",
+          "label": "3.5g",
+          "name": "Total fat",
+          "value": 3.5219
+        },
+        {
+          "dailyValueLabel": "2%",
+          "label": "0g",
+          "name": "Saturated fat",
+          "value": 0.4402
+        },
+        {
+          "dailyValueLabel": "0%",
+          "label": "0mg",
+          "name": "Cholesterol",
+          "value": 0.0
+        },
+        {
+          "dailyValueLabel": "13%",
+          "label": "310mg",
+          "name": "Sodium",
+          "value": 308.9712
+        },
+        {
+          "dailyValueLabel": "4%",
+          "label": "12g",
+          "name": "Total Carbohydrate",
+          "value": 12.3264
+        },
+        {
+          "dailyValueLabel": null,
+          "label": "0g",
+          "name": "Sugar",
+          "value": 0.0
+        },
+        {
+          "dailyValueLabel": null,
+          "label": "0g",
+          "name": "Added Sugar",
+          "value": 0.0
+        },
+        {
+          "dailyValueLabel": "",
+          "label": "less than 1 g",
+          "name": "Dietary Fiber",
+          "value": 0.8805
+        },
+        {
+          "dailyValueLabel": "1%",
+          "label": "less than 1 g",
+          "name": "Protein",
+          "value": 0.8805
+        },
+        {
+          "dailyValueLabel": "0%",
+          "label": null,
+          "name": "Calcium",
+          "value": 0.0
+        },
+        {
+          "dailyValueLabel": "2%",
+          "label": null,
+          "name": "Iron",
+          "value": 0.3522
+        }
+      ],
+      "traits": [
+        {
+          "name": "Soy",
+          "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Soy.svg",
+          "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Soy.svg",
+          "type": "Allergen"
+        },
+        {
+          "name": "Vegetarian",
+          "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+          "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+          "type": "Preference"
+        },
+        {
+          "name": "Vegan",
+          "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+          "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+          "type": "Preference"
+        }
+      ]
+    }
+  }
+}

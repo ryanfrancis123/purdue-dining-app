@@ -1,0 +1,112 @@
+{
+  "data": {
+    "itemByItemId": {
+      "appearances": [
+        {
+          "date": "2026-06-18T11:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Lunch",
+          "stationName": "La Fonda"
+        },
+        {
+          "date": "2026-06-29T11:00:00-04:00",
+          "locationName": "Wiley",
+          "mealName": "Lunch",
+          "stationName": "La Fonda"
+        }
+      ],
+      "components": null,
+      "ingredients": "Pork Boston Butt Bone In 73# Avg Cs, Yellow Onion (Onion.), Juice Orange 1 Gallon Fresh (Orange Juice.), Minced Garlic (Peeled Garlic), Coarse Kosher Salt (Salt, Yellow Prussiate Of Soda.), Juice Lime Quart Fresh Piazza (Water, Lime Concentrate, And May Contain Fresh Lime Juice Pasteurized), Spice Ancho Chili Powder 16 oz (Dried Ancho Chiles.)",
+      "isNutritionReady": true,
+      "itemId": "0ba2a9f7-70ee-470b-a1c1-67d21fff1ef4",
+      "name": "Pork Carnitas",
+      "nutritionFacts": [
+        {
+          "dailyValueLabel": null,
+          "label": "4 oz Serving",
+          "name": "Serving Size",
+          "value": null
+        },
+        {
+          "dailyValueLabel": null,
+          "label": "216",
+          "name": "Calories",
+          "value": 215.8849
+        },
+        {
+          "dailyValueLabel": null,
+          "label": "126",
+          "name": "Calories from fat",
+          "value": null
+        },
+        {
+          "dailyValueLabel": "22%",
+          "label": "14g",
+          "name": "Total fat",
+          "value": 14.0192
+        },
+        {
+          "dailyValueLabel": "25%",
+          "label": "5g",
+          "name": "Saturated fat",
+          "value": 4.9319
+        },
+        {
+          "dailyValueLabel": "23%",
+          "label": "70mg",
+          "name": "Cholesterol",
+          "value": 70.3065
+        },
+        {
+          "dailyValueLabel": "27%",
+          "label": "650mg",
+          "name": "Sodium",
+          "value": 645.9237
+        },
+        {
+          "dailyValueLabel": "0%",
+          "label": "1g",
+          "name": "Total Carbohydrate",
+          "value": 1.23
+        },
+        {
+          "dailyValueLabel": null,
+          "label": "0g",
+          "name": "Sugar",
+          "value": 0.3279
+        },
+        {
+          "dailyValueLabel": null,
+          "label": "0g",
+          "name": "Added Sugar",
+          "value": 0.0
+        },
+        {
+          "dailyValueLabel": "",
+          "label": "less than 1 g",
+          "name": "Dietary Fiber",
+          "value": 0.684
+        },
+        {
+          "dailyValueLabel": "20%",
+          "label": "20g",
+          "name": "Protein",
+          "value": 19.9361
+        },
+        {
+          "dailyValueLabel": "2%",
+          "label": null,
+          "name": "Calcium",
+          "value": 21.6462
+        },
+        {
+          "dailyValueLabel": "8%",
+          "label": null,
+          "name": "Iron",
+          "value": 1.2809
+        }
+      ],
+      "traits": []
+    }
+  }
+}

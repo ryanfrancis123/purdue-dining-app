@@ -37,6 +37,11 @@ VALID_CATEGORIES = {
     "other",
 }
 
+VALID_CATEGORY_STATUSES = {
+    "classified",
+    "unclassified",
+}
+
 VALID_ALLERGENS = {
     "milk",
     "egg",
@@ -133,7 +138,6 @@ def record_errors(record: dict[str, Any]) -> list[str]:
         "normalized_name",
         "dining_hall",
         "meal_period",
-        "category",
         "serving_date",
         "nutrition_status",
         "allergen_status",
@@ -148,7 +152,16 @@ def record_errors(record: dict[str, Any]) -> list[str]:
     if record.get("meal_period") not in VALID_MEAL_PERIODS:
         errors.append("meal_period")
 
-    if record.get("category") not in VALID_CATEGORIES:
+    category = record.get("category")
+    category_status = record.get("category_status", "classified")
+
+    if category_status not in VALID_CATEGORY_STATUSES:
+        errors.append("category_status")
+
+    if category_status == "classified" and category not in VALID_CATEGORIES:
+        errors.append("category")
+
+    if category_status == "unclassified" and category is not None:
         errors.append("category")
 
     if not is_valid_date(record.get("serving_date")):
@@ -213,10 +226,14 @@ def main() -> int:
     hall_counts: Counter[str] = Counter()
     meal_period_counts: Counter[str] = Counter()
     category_counts: Counter[str] = Counter()
+    category_status_counts: Counter[str] = Counter()
     nutrition_status_counts: Counter[str] = Counter()
     allergen_status_counts: Counter[str] = Counter()
     unknown_allergens: Counter[str] = Counter()
     unknown_tags: Counter[str] = Counter()
+    unsupported_source_allergens: Counter[str] = Counter()
+    dietary_tag_counts: Counter[str] = Counter()
+    exclusion_reasons: Counter[str] = Counter()
     source_occurrence_keys: dict[str, list[int]] = defaultdict(list)
 
     invalid_indexes: set[int] = set()
@@ -229,6 +246,7 @@ def main() -> int:
         hall_counts[str(record.get("dining_hall", ""))] += 1
         meal_period_counts[str(record.get("meal_period", ""))] += 1
         category_counts[str(record.get("category", ""))] += 1
+        category_status_counts[str(record.get("category_status", "classified"))] += 1
         nutrition_status_counts[str(record.get("nutrition_status", ""))] += 1
         allergen_status_counts[str(record.get("allergen_status", ""))] += 1
 
@@ -237,8 +255,16 @@ def main() -> int:
                 unknown_allergens[str(allergen)] += 1
 
         for tag in record.get("dietary_tags", []):
+            if isinstance(tag, str):
+                dietary_tag_counts[tag] += 1
             if not isinstance(tag, str) or tag not in VALID_DIETARY_TAGS:
                 unknown_tags[str(tag)] += 1
+
+        for allergen in record.get("unsupported_source_allergens", []):
+            unsupported_source_allergens[str(allergen)] += 1
+
+        for reason in record.get("exclusion_reasons", []):
+            exclusion_reasons[str(reason)] += 1
 
         source_occurrence_key = record.get("source_occurrence_key")
         if is_non_empty_string(source_occurrence_key):
@@ -266,10 +292,20 @@ def main() -> int:
     print_counter("Counts by dining hall:", hall_counts)
     print_counter("Counts by meal period:", meal_period_counts)
     print_counter("Counts by category:", category_counts)
+    print_counter("Counts by category status:", category_status_counts)
     print_counter("Nutrition status coverage:", nutrition_status_counts)
     print_counter("Allergen status coverage:", allergen_status_counts)
     print_counter("Unknown allergens:", unknown_allergens)
+    print_counter("Unsupported source allergens:", unsupported_source_allergens)
     print_counter("Unknown dietary tags:", unknown_tags)
+    print_counter("Dietary tag counts:", dietary_tag_counts)
+    print_counter("Recommendation exclusion reasons:", exclusion_reasons)
+
+    recommendation_eligible_count = sum(
+        1 for record in records if record.get("recommendation_eligible") is True
+    )
+    print(f"\nRecommendation eligible records: {recommendation_eligible_count}")
+    print(f"Recommendation excluded records: {len(records) - recommendation_eligible_count}")
 
     print("\nDuplicate source_occurrence_key values:")
     if not duplicates:

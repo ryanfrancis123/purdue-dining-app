@@ -1,0 +1,187 @@
+{
+  "data": {
+    "diningCourtCategories": [
+      {
+        "diningCourts": [
+          {
+            "category": "Quick Bites",
+            "formalName": "1bowl at Meredith Hall",
+            "id": "RGluaW5nQ291cnQ6Qk9XTA==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/b6c2089d-7737-4953-b1d9-0ad8e7c3cc40",
+            "name": "1bowl at Meredith Hall",
+            "upcomingMeals": []
+          },
+          {
+            "category": "Quick Bites",
+            "formalName": "Pete's Za at Tarkington Hall",
+            "id": "RGluaW5nQ291cnQ6UFpaQQ==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/f47041d6-e46f-4694-a070-1403018efb27",
+            "name": "Pete's Za at Tarkington Hall",
+            "upcomingMeals": []
+          },
+          {
+            "category": "Quick Bites",
+            "formalName": "Sushi Boss at Meredith Hall",
+            "id": "RGluaW5nQ291cnQ6QFRHUA==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/dccc7006-1619-4ca9-9cbe-65a78c1dddcf",
+            "name": "Sushi Boss at Meredith Hall",
+            "upcomingMeals": []
+          }
+        ],
+        "name": "Quick Bites"
+      },
+      {
+        "diningCourts": [
+          {
+            "category": "Dining Courts",
+            "formalName": "Earhart Dining Court",
+            "id": "RGluaW5nQ291cnQ6RVJIVA==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/eae8f3e5-fdb3-4f19-996b-a7f00bf471fc",
+            "name": "Earhart",
+            "upcomingMeals": []
+          },
+          {
+            "category": "Dining Courts",
+            "formalName": "Ford Dining Court",
+            "id": "RGluaW5nQ291cnQ6Rk9SRA==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/8fdbe2c4-94d9-4f07-9031-5464c7c384bf",
+            "name": "Ford",
+            "upcomingMeals": []
+          },
+          {
+            "category": "Dining Courts",
+            "formalName": "Hillenbrand Dining Court",
+            "id": "RGluaW5nQ291cnQ6SElMTA==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/fb23460e-9d84-4d23-b03e-68b11f75f3bc",
+            "name": "Hillenbrand",
+            "upcomingMeals": []
+          },
+          {
+            "category": "Dining Courts",
+            "formalName": "Wiley Dining Court",
+            "id": "RGluaW5nQ291cnQ6V0lMWQ==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/cbb22e97-c11f-481f-b712-3c4224409b76",
+            "name": "Wiley",
+            "upcomingMeals": [
+              {
+                "endTime": "2026-06-18T08:30:00-04:00",
+                "id": "VXBjb21pbmdNZWFsOjNjNDI4MTkyLTVhYmYtNGI0MC1iOGI4LTI2MmRkYTZkYmFiMg==",
+                "name": "Breakfast",
+                "startTime": "2026-06-18T07:00:00-04:00",
+                "type": "Breakfast"
+              },
+              {
+                "endTime": "2026-06-18T13:30:00-04:00",
+                "id": "VXBjb21pbmdNZWFsOjI5NzNlNmIzLTBmNmUtNGYwOC04Y2ZlLTczODNlMGZjYmIzNQ==",
+                "name": "Lunch",
+                "startTime": "2026-06-18T11:00:00-04:00",
+                "type": "Lunch"
+              },
+              {
+                "endTime": "2026-06-18T19:00:00-04:00",
+                "id": "VXBjb21pbmdNZWFsOjc2NTJmMDM2LTc4OTctNDdkZC1iMTAwLTNiZDM1ZGYwOWQ2MQ==",
+                "name": "Dinner",
+                "startTime": "2026-06-18T17:00:00-04:00",
+                "type": "Dinner"
+              },
+              {
+                "endTime": "2026-06-19T08:30:00-04:00",
+                "id": "VXBjb21pbmdNZWFsOjA5MTFiNmQwLTc3YzgtNDRiNi1iYTZiLTUzN2YwZTk4MTBkMw==",
+                "name": "Breakfast",
+                "startTime": "2026-06-19T07:00:00-04:00",
+                "type": "Breakfast"
+              },
+              {
+                "endTime": "2026-06-19T13:30:00-04:00",
+                "id": "VXBjb21pbmdNZWFsOjdiZWYyOGYyLTg5NWUtNDQ5OC1hYzQ2LTQyZDdkODIyOGNhNw==",
+                "name": "Lunch",
+                "startTime": "2026-06-19T11:00:00-04:00",
+                "type": "Lunch"
+              },
+              {
+                "endTime": "2026-06-19T19:00:00-04:00",
+                "id": "VXBjb21pbmdNZWFsOjYxY2Q1OWQ3LWU0MzAtNDc0My1iYmYxLTE0YjY3YTRjMDcxZg==",
+                "name": "Dinner",
+                "startTime": "2026-06-19T17:00:00-04:00",
+                "type": "Dinner"
+              }
+            ]
+          },
+          {
+            "category": "Dining Courts",
+            "formalName": "Windsor Dining Court",
+            "id": "RGluaW5nQ291cnQ6V0lORA==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/350d2825-e3a3-4e88-b6ba-25948d9270d9",
+            "name": "Windsor",
+            "upcomingMeals": []
+          }
+        ],
+        "name": "Dining Courts"
+      },
+      {
+        "diningCourts": [
+          {
+            "category": "On-the-GO!",
+            "formalName": "Earhart On-the-GO!",
+            "id": "RGluaW5nQ291cnQ6RU9URw==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/1750fecc-1db8-4391-8e7d-7e5989b2c96d",
+            "name": "Earhart On-the-GO!",
+            "upcomingMeals": []
+          },
+          {
+            "category": "On-the-GO!",
+            "formalName": "Ford On-the-GO!",
+            "id": "RGluaW5nQ291cnQ6Rk9URw==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/1750fecc-1db8-4391-8e7d-7e5989b2c96d",
+            "name": "Ford On-the-GO!",
+            "upcomingMeals": []
+          },
+          {
+            "category": "On-the-GO!",
+            "formalName": "Lawson On-the-GO!",
+            "id": "RGluaW5nQ291cnQ6TFdTTg==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/1750fecc-1db8-4391-8e7d-7e5989b2c96d",
+            "name": "Lawson On-the-GO!",
+            "upcomingMeals": [
+              {
+                "endTime": "2026-06-18T14:00:00-04:00",
+                "id": "VXBjb21pbmdNZWFsOjg0MjFmMzU4LTliMzctNGMyZC05OGFhLTRmYjg2NjQ3MjM0MQ==",
+                "name": "Breakfast/Lunch",
+                "startTime": "2026-06-18T09:00:00-04:00",
+                "type": "Snack"
+              },
+              {
+                "endTime": "2026-06-19T14:00:00-04:00",
+                "id": "VXBjb21pbmdNZWFsOmUwNDZkMTQzLWJjZjgtNDc3ZC05MDFlLTk5NzA3MDE2ZTZhNg==",
+                "name": "Breakfast/Lunch",
+                "startTime": "2026-06-19T09:00:00-04:00",
+                "type": "Snack"
+              }
+            ]
+          },
+          {
+            "category": "On-the-GO!",
+            "formalName": "Windsor On-the-GO!",
+            "id": "RGluaW5nQ291cnQ6V09URw==",
+            "lineLength": null,
+            "logoUrl": "https://api.hfs.purdue.edu/Menus/v2/file/1750fecc-1db8-4391-8e7d-7e5989b2c96d",
+            "name": "Windsor On-the-GO!",
+            "upcomingMeals": []
+          }
+        ],
+        "name": "On-the-GO!"
+      }
+    ]
+  }
+}

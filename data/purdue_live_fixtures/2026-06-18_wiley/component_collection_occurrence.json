@@ -1,0 +1,580 @@
+{
+  "data": {
+    "itemAppearance": {
+      "components": [
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6M2FmMjI3OGEtYmUyYi00OTJjLThhMDktMjBmZDE2MTc5MmMz",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "e6710635-a4cd-45f7-8cb3-0969002d7eda",
+            "name": "Guacamole Dip",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "3af2278a-be2b-492c-8a09-20fd161792c3",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6YzQ0Y2M5NGYtZjQ1Mi00N2I0LTk5NDYtNzIyZTIzZjA3MmRh",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "c4a05f5d-fcda-44b8-80d1-1cc486674f74",
+            "name": "Fresh Pico De Gallo",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "c44cc94f-f452-47b4-9946-722e23f072da",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6MGNiM2E0Y2UtOTJmZi00ODU4LTk0NTEtYzkwZjRlNmQ4Zjgz",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "e87a0527-32bd-420a-8991-858240ede029",
+            "name": "Shredded Lettuce",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "0cb3a4ce-92ff-4858-9451-c90f4e6d8f83",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6MzljZTM4MGYtZDlkNy00NGU3LTg4MGUtMjUxMDViM2Q4N2Ri",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "3a11b2f4-48fd-4255-bbf3-697d2356d3eb",
+            "name": "Shredded Aged White Cheddar Cheese",
+            "traits": [
+              {
+                "name": "Milk",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Milk.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Milk.svg",
+                "type": "Allergen"
+              },
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "39ce380f-d9d7-44e7-880e-25105b3d87db",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6ZDcxOWRkMzctNDdlMy00MTAzLThjMGUtYzBiYWM5NWE0MjRi",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "48cd9c1d-7f22-4437-bc97-d5adba855c4a",
+            "name": "Tortilla Chips",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "d719dd37-47e3-4103-8c0e-c0bac95a424b",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6MDI5ZGUwNzctY2M2Ny00M2NjLWIxMjctNWQ0YWY0OTcwMjE2",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "fe30e756-1841-4f51-91d5-0460e28c528e",
+            "name": "Salsa Verde",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "029de077-cc67-43cc-b127-5d4af4970216",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6NzljYWYyZjAtOTM1OC00MjdhLTk1ODEtMjE3OGRiZTdmN2Zm",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "44b2c1ae-2b85-4232-8849-b8663f5bd9e3",
+            "name": "Salsa Roja",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "79caf2f0-9358-427a-9581-2178dbe7f7ff",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6YzI5YTEzMzQtZGUzNC00NDAzLTk2N2EtYTgzMzc1ZDlmODM1",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "158cdf12-7149-46a9-abee-d303282a67ad",
+            "name": "Diced Onion",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "c29a1334-de34-4403-967a-a83375d9f835",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6NmU1NjY4NzktM2FkZi00ODJhLWJhMTItNDg0NzQyMmYyN2I4",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "9f946b5b-494b-4a53-bd75-5070f5f0bf78",
+            "name": "Cortes Cream",
+            "traits": [
+              {
+                "name": "Milk",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Milk.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Milk.svg",
+                "type": "Allergen"
+              },
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "6e566879-3adf-482a-ba12-4847422f27b8",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6N2UwODY3Y2QtZTM0YS00ZjVjLTg1NDctM2VjYjY0OWIwMmJj",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "3108c1d9-ba5a-45cf-9eaf-de211ecda91b",
+            "name": "Limes",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "7e0867cd-e34a-4f5c-8547-3ecb649b02bc",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6ZDAxYjNjNTEtY2YyOC00ZmM1LWJhM2MtYjYzMDcxNWVmMDU2",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "e89327ff-5979-4c09-9b2c-7122dea335ec",
+            "name": "Cilantro",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "d01b3c51-cf28-4fc5-ba3c-b630715ef056",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6ZWFhM2I4NTUtZDg2OC00MTBiLTlhOWYtZTYyM2IzNmVlNmEy",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "cfe97a5d-1ee8-491b-93ed-404ee3aad075",
+            "name": "Tajin",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "eaa3b855-d868-410b-9a9f-e623b36ee6a2",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6ZTFiOTMyZDYtZDg0Zi00YWI4LTg0NTMtNGExMTgwMWI4NDk2",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "cc81f233-8f7f-4dcb-beec-291910cf0d25",
+            "name": "Cholula Hot Sauce",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "e1b932d6-d84f-4ab8-8453-4a11801b8496",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6OTYyZjQ0NjItNzVkNS00YWIzLTkxYjYtMWIwNWI1M2ExYjIz",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "d1b6bb65-d124-4351-9660-8453b0fc7263",
+            "name": "Tapatio Hot Sauce",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "962f4462-75d5-4ab3-91b6-1b05b53a1b23",
+          "specialName": null
+        },
+        {
+          "id": "SXRlbUFwcGVhcmFuY2U6ZjUzMzI5YTItMmMyYi00NWZlLTk5ZTEtMzM3ZDZiMzIzZGMy",
+          "item": {
+            "isFlaggedForCurrentUser": false,
+            "isHiddenForCurrentUser": false,
+            "isNutritionReady": true,
+            "itemId": "a525e04c-7fb0-4809-86c1-7e465d7fa945",
+            "name": "El Yucateco Habanero Hot Sauce",
+            "traits": [
+              {
+                "name": "Vegetarian",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegetarian.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegetarian.svg",
+                "type": "Preference"
+              },
+              {
+                "name": "Vegan",
+                "svgIcon": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIcons_Vegan.svg",
+                "svgIconWithoutBackground": "https://api.hfs.purdue.edu/Menus/Content/dietaryTagIcons/PurdueMenusIconsNoBackground_Vegan.svg",
+                "type": "Preference"
+              }
+            ]
+          },
+          "itemMenuId": "f53329a2-2c2b-45fe-99e1-337d6b323dc2",
+          "specialName": null
+        }
+      ],
+      "displayName": "La Fonda Station",
+      "hasComponents": true,
+      "id": "SXRlbUFwcGVhcmFuY2U6MGQzOWU3ZmYtMDEyZi00Y2U5LWI4YzgtNGZjYTNkZWI4ZTVk",
+      "item": {
+        "appearances": [
+          {
+            "date": "2026-06-18T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-18T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-19T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-19T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-20T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-20T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-21T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-21T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-22T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-22T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-23T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-23T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-24T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-24T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-25T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-25T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-26T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-26T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-27T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-27T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-28T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-28T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-29T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-29T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-30T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-06-30T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-07-01T11:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Lunch",
+            "stationName": "La Fonda"
+          },
+          {
+            "date": "2026-07-01T17:00:00-04:00",
+            "locationName": "Wiley",
+            "mealName": "Dinner",
+            "stationName": "La Fonda"
+          }
+        ],
+        "ingredients": null,
+        "isNutritionReady": false,
+        "itemId": "06d8dd22-fe62-45e8-88a8-911b1cb30f81",
+        "name": "La Fonda Station",
+        "nutritionFacts": null,
+        "traits": null
+      },
+      "specialName": null
+    }
+  }
+}

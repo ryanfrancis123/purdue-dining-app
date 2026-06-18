@@ -38,6 +38,11 @@ VALID_CATEGORIES = {
     "other",
 }
 
+VALID_CATEGORY_STATUSES = {
+    "classified",
+    "unclassified",
+}
+
 VALID_ALLERGENS = {
     "milk",
     "egg",
@@ -75,7 +80,6 @@ REQUIRED_STRING_FIELDS = [
     "normalized_name",
     "dining_hall",
     "meal_period",
-    "category",
     "serving_date",
     "nutrition_status",
     "allergen_status",
@@ -84,6 +88,8 @@ REQUIRED_STRING_FIELDS = [
 
 OPTIONAL_STRING_FIELDS = [
     "source_item_id",
+    "category",
+    "category_status",
     "station",
     "serving_size",
     "source_url",
@@ -189,8 +195,17 @@ def validate_record(record: dict[str, Any], index: int) -> list[str]:
     if record.get("meal_period") not in VALID_MEAL_PERIODS:
         errors.append("meal_period is not supported")
 
-    if record.get("category") not in VALID_CATEGORIES:
+    category = record.get("category")
+    category_status = record.get("category_status", "classified")
+
+    if category_status not in VALID_CATEGORY_STATUSES:
+        errors.append("category_status is not supported")
+
+    if category_status == "classified" and category not in VALID_CATEGORIES:
         errors.append("category is not supported")
+
+    if category_status == "unclassified" and category is not None:
+        errors.append("unclassified records must use category null")
 
     nutrition_status = record.get("nutrition_status")
     if nutrition_status not in VALID_NUTRITION_STATUSES:
