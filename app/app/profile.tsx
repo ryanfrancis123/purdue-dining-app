@@ -44,6 +44,15 @@ import {
   savePersistedMealData,
 } from "../src/utils/mealStorage";
 import { createMealLogFromSavedMeal } from "../src/utils/mealSnapshots";
+import {
+  getLocalDateKey,
+  getMacroTargetReferenceProgress,
+  resolveMealLogLocalDate,
+  summarizeMealLogsForDate,
+  summarizeMealLogsForLastSevenDays,
+  type TargetReferenceProgress,
+  type WeeklyMealLogSummaryDay,
+} from "../src/utils/progressTracking";
 import type { Allergen, DiningHall } from "../src/types/menu";
 import type {
   ActivityLevel,
@@ -691,31 +700,84 @@ export default function ProfileScreen() {
     );
   }
 
-  function renderProgressDayPreview(day: string) {
+  function renderProgressDayPreview(day: WeeklyMealLogSummaryDay) {
+    const hasLoggedMeal = day.mealCount > 0;
+
     return (
-      <View key={day} style={styles.progressDayPreview}>
-        <View style={styles.progressDayCircle} />
-        <Text style={styles.progressDayLabel}>{day}</Text>
+      <View key={day.localDate} style={styles.progressDayPreview}>
+        <View
+          style={[
+            styles.progressDayCircle,
+            hasLoggedMeal && styles.progressDayCircleFilled,
+          ]}
+        >
+          <Text
+            style={[
+              styles.progressDayCount,
+              hasLoggedMeal && styles.progressDayCountFilled,
+            ]}
+          >
+            {day.mealCount}
+          </Text>
+        </View>
+        <Text style={styles.progressDayLabel}>{day.weekdayLabel}</Text>
       </View>
     );
   }
 
-  function renderProgressTargetRow({
+  function renderLoggedTodayMetric({
     iconName,
     label,
-    target,
+    unit,
+    value,
   }: {
     iconName: MaterialIconName;
     label: string;
-    target: string;
+    unit: string;
+    value: number;
   }) {
     return (
-      <View style={styles.progressTargetRow}>
+      <View style={styles.progressMetricTile}>
         <View style={styles.progressTargetLabelGroup}>
           <MaterialIcons name={iconName} size={18} color="#b08a3c" />
           <Text style={styles.progressTargetLabel}>{label}</Text>
         </View>
-        <Text style={styles.progressTargetValue}>Not started / {target}</Text>
+        <Text style={styles.progressMetricValue}>
+          {value}
+          <Text style={styles.progressMetricUnit}> {unit}</Text>
+        </Text>
+      </View>
+    );
+  }
+
+  function renderTargetReferenceRow({
+    iconName,
+    label,
+    progress,
+    unit,
+  }: {
+    iconName: MaterialIconName;
+    label: string;
+    progress: TargetReferenceProgress;
+    unit: string;
+  }) {
+    const visualWidth: DimensionValue = `${progress.visualPercentage}%`;
+
+    return (
+      <View style={styles.progressReferenceRow}>
+        <View style={styles.progressReferenceHeader}>
+          <View style={styles.progressTargetLabelGroup}>
+            <MaterialIcons name={iconName} size={18} color="#b08a3c" />
+            <Text style={styles.progressTargetLabel}>{label}</Text>
+          </View>
+          <Text style={styles.progressTargetValue}>
+            {Math.round(progress.actual)} / {Math.round(progress.target)} {unit} ·{" "}
+            {Math.round(progress.percentage)}%
+          </Text>
+        </View>
+        <View style={styles.progressReferenceTrack}>
+          <View style={[styles.progressReferenceFill, { width: visualWidth }]} />
+        </View>
       </View>
     );
   }
@@ -774,6 +836,12 @@ export default function ProfileScreen() {
     }
 
     return `${month}/${day}/${year}`;
+  }
+
+  function formatMealLogDate(mealLog: MealLogEntry) {
+    const resolvedLocalDate = resolveMealLogLocalDate(mealLog);
+
+    return resolvedLocalDate ? formatStoredDate(resolvedLocalDate) : "Date unavailable";
   }
 
   function formatStoredTime(value: string) {
@@ -900,7 +968,7 @@ export default function ProfileScreen() {
       <View key={mealLog.id} style={styles.mealRecordCard}>
         <Text style={styles.mealRecordTitle}>{getMealItemNames(mealLog)}</Text>
         <Text style={styles.mealRecordMeta}>
-          {formatStoredDate(mealLog.localDate)}
+          {formatMealLogDate(mealLog)}
           {loggedTime ? ` · ${loggedTime}` : ""}
         </Text>
         <Text style={styles.mealRecordMacros}>
@@ -1012,6 +1080,15 @@ export default function ProfileScreen() {
       { label: "Progress", value: "progress" },
     ];
     const dashboardTarget = estimateMealMacroTarget(savedProfile);
+    const todaySummary = summarizeMealLogsForDate(
+      mealData.mealLogs,
+      getLocalDateKey()
+    );
+    const weeklySummary = summarizeMealLogsForLastSevenDays(mealData.mealLogs);
+    const targetReferenceProgress = getMacroTargetReferenceProgress(
+      todaySummary,
+      dashboardTarget
+    );
     const dashboardActivityOption = ACTIVITY_DISPLAY_OPTIONS.find(
       (option) => option.value === savedProfile.activityLevel
     );
@@ -1413,7 +1490,7 @@ export default function ProfileScreen() {
                 iconName: "trending-up",
                 title: "Progress",
                 body:
-                  "Meal history and nutrition trends will appear here once logging exists.",
+                  "Review logged meals from this device and recent local-date consistency.",
               })}
 
               <View style={styles.summaryCard}>
@@ -1424,14 +1501,60 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Weekly Consistency</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Start logging meals to build your weekly consistency.
+                      {weeklySummary.daysWithLoggedMeals} of 7 days with logged meals
                     </Text>
                   </View>
                 </View>
                 <View style={styles.progressWeekPreview}>
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                    renderProgressDayPreview
-                  )}
+                  {weeklySummary.days.map(renderProgressDayPreview)}
+                </View>
+              </View>
+
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="event-available" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Logged Today</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      {todaySummary.mealCount}{" "}
+                      {todaySummary.mealCount === 1 ? "meal" : "meals"} logged today
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.progressMetricGrid}>
+                  {renderLoggedTodayMetric({
+                    iconName: "restaurant",
+                    label: "Meals",
+                    unit: "logged",
+                    value: todaySummary.mealCount,
+                  })}
+                  {renderLoggedTodayMetric({
+                    iconName: "local-fire-department",
+                    label: "Calories",
+                    unit: "kcal",
+                    value: todaySummary.calories,
+                  })}
+                  {renderLoggedTodayMetric({
+                    iconName: "eco",
+                    label: "Protein",
+                    unit: "g",
+                    value: todaySummary.protein,
+                  })}
+                  {renderLoggedTodayMetric({
+                    iconName: "grain",
+                    label: "Carbs",
+                    unit: "g",
+                    value: todaySummary.carbs,
+                  })}
+                  {renderLoggedTodayMetric({
+                    iconName: "opacity",
+                    label: "Fat",
+                    unit: "g",
+                    value: todaySummary.fat,
+                  })}
                 </View>
               </View>
 
@@ -1441,34 +1564,34 @@ export default function ProfileScreen() {
                     <MaterialIcons name="track-changes" size={24} color="#b08a3c" />
                   </View>
                   <View style={styles.summaryCardTitleGroup}>
-                    <Text style={styles.summaryCardTitle}>Meal Target Completion</Text>
+                    <Text style={styles.summaryCardTitle}>
+                      Estimated Meal Target Reference
+                    </Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      No meal logs yet. Targets are ready when logging starts.
+                      Compared with your estimated meal target
                     </Text>
                   </View>
                 </View>
 
-                <View style={styles.progressCompletionContent}>
-                  <View style={styles.progressTargetList}>
-                    {renderProgressTargetRow({
-                      iconName: "local-fire-department",
-                      label: "Calories",
-                      target: `${dashboardTarget.calories} kcal`,
-                    })}
-                    {renderProgressTargetRow({
-                      iconName: "eco",
-                      label: "Protein",
-                      target: `${dashboardTarget.proteinGrams} g`,
-                    })}
-                    {renderProgressTargetRow({
-                      iconName: "grain",
-                      label: "Carbs",
-                      target: `${dashboardTarget.carbsGrams} g`,
-                    })}
-                  </View>
-                  <View style={styles.progressEmptyRing}>
-                    <Text style={styles.progressEmptyRingText}>No logs yet</Text>
-                  </View>
+                <View style={styles.progressReferenceList}>
+                  {renderTargetReferenceRow({
+                    iconName: "local-fire-department",
+                    label: "Calories",
+                    progress: targetReferenceProgress.calories,
+                    unit: "kcal",
+                  })}
+                  {renderTargetReferenceRow({
+                    iconName: "eco",
+                    label: "Protein",
+                    progress: targetReferenceProgress.protein,
+                    unit: "g",
+                  })}
+                  {renderTargetReferenceRow({
+                    iconName: "grain",
+                    label: "Carbs",
+                    progress: targetReferenceProgress.carbs,
+                    unit: "g",
+                  })}
                 </View>
               </View>
 
@@ -1480,7 +1603,7 @@ export default function ProfileScreen() {
                     </View>
                     <Text style={styles.progressEmptyTitle}>No meals logged yet.</Text>
                     <Text style={styles.progressEmptyText}>
-                      Logged meals will appear here after you log a recommendation.
+                      Log a meal to start filling recent meals and weekly consistency.
                     </Text>
                   </>
                 ) : (
@@ -1506,13 +1629,23 @@ export default function ProfileScreen() {
                 )}
               </View>
 
-              {renderDashboardPlaceholderCard({
-                body:
-                  "Insights will appear after the app has meal history to analyze.",
-                iconName: "tips-and-updates",
-                subtitle: "Future analysis",
-                title: "Insights",
-              })}
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryCardHeader}>
+                  <View style={styles.summaryCardBadge}>
+                    <MaterialIcons name="summarize" size={24} color="#b08a3c" />
+                  </View>
+                  <View style={styles.summaryCardTitleGroup}>
+                    <Text style={styles.summaryCardTitle}>Log Summary</Text>
+                    <Text style={styles.summaryCardSubtitle}>
+                      Meals logged on {weeklySummary.daysWithLoggedMeals} of the last 7 days
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.dashboardPlaceholderBody}>
+                  {todaySummary.mealCount}{" "}
+                  {todaySummary.mealCount === 1 ? "meal" : "meals"} logged today.
+                </Text>
+              </View>
             </View>
           );
       }
@@ -2574,11 +2707,63 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     borderColor: "#c7cbd1",
     backgroundColor: "#f9fafb",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  progressDayCircleFilled: {
+    borderStyle: "solid",
+    borderColor: "#b08a3c",
+    backgroundColor: "#f8efd9",
+  },
+
+  progressDayCount: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "900",
+    color: "#6b7280",
+  },
+
+  progressDayCountFilled: {
+    color: "#111",
   },
 
   progressDayLabel: {
     fontSize: 12,
     lineHeight: 16,
+    fontWeight: "800",
+    color: "#6b7280",
+  },
+
+  progressMetricGrid: {
+    gap: 10,
+  },
+
+  progressMetricTile: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#edf0f3",
+    backgroundColor: "#fffdf9",
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+
+  progressMetricValue: {
+    flex: 1,
+    textAlign: "right",
+    fontSize: 18,
+    lineHeight: 23,
+    fontWeight: "900",
+    color: "#111",
+  },
+
+  progressMetricUnit: {
+    fontSize: 13,
+    lineHeight: 18,
     fontWeight: "800",
     color: "#6b7280",
   },
@@ -2628,6 +2813,34 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: "800",
     color: "#111",
+  },
+
+  progressReferenceList: {
+    gap: 12,
+  },
+
+  progressReferenceRow: {
+    gap: 8,
+  },
+
+  progressReferenceHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+
+  progressReferenceTrack: {
+    height: 9,
+    borderRadius: 999,
+    backgroundColor: "#edf0f3",
+    overflow: "hidden",
+  },
+
+  progressReferenceFill: {
+    height: "100%",
+    borderRadius: 999,
+    backgroundColor: "#b08a3c",
   },
 
   progressEmptyRing: {
