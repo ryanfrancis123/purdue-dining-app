@@ -1,15 +1,31 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { ActivityLevel, NutritionGoal, NutritionProfile, Sex } from "../types/profile";
+import { ALLERGEN_OPTIONS, DINING_HALL_OPTIONS } from "../constants/menuOptions";
+import { DEFAULT_PROFILE_PREFERENCES } from "../constants/preferenceOptions";
+import type {
+  ActivityLevel,
+  MealStylePreference,
+  NutritionGoal,
+  NutritionProfile,
+  ProfilePreferences,
+  Sex,
+} from "../types/profile";
 
 export const PROFILE_STORAGE_KEY = "@purdue-dining:nutrition-profile";
 
 export type UnitSystem = "us" | "metric";
 
-export type StoredNutritionProfile = {
+export type StoredNutritionProfileV1 = {
   version: 1;
   profile: NutritionProfile;
   unitSystem: UnitSystem;
+};
+
+export type StoredNutritionProfile = {
+  version: 2;
+  profile: NutritionProfile;
+  unitSystem: UnitSystem;
+  preferences: ProfilePreferences;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -51,41 +67,107 @@ function isUnitSystem(value: unknown): value is UnitSystem {
   return value === "us" || value === "metric";
 }
 
-function parseStoredNutritionProfile(value: unknown): StoredNutritionProfile | null {
-  if (!isRecord(value) || value.version !== 1 || !isUnitSystem(value.unitSystem)) {
-    return null;
-  }
+function isMealStylePreference(value: unknown): value is MealStylePreference {
+  return (
+    value === "balanced" ||
+    value === "higher_protein" ||
+    value === "lower_calorie" ||
+    value === "pre_workout"
+  );
+}
 
-  const profile = value.profile;
-
-  if (!isRecord(profile)) {
+function parseNutritionProfile(value: unknown): NutritionProfile | null {
+  if (!isRecord(value)) {
     return null;
   }
 
   if (
-    !(typeof profile.displayName === "string" || profile.displayName === null) ||
-    !isNullableFiniteNumber(profile.age) ||
-    !isNullableFiniteNumber(profile.heightCm) ||
-    !isNullableFiniteNumber(profile.weightKg) ||
-    !isSex(profile.sex) ||
-    !isActivityLevel(profile.activityLevel) ||
-    !isNutritionGoal(profile.goal)
+    !(typeof value.displayName === "string" || value.displayName === null) ||
+    !isNullableFiniteNumber(value.age) ||
+    !isNullableFiniteNumber(value.heightCm) ||
+    !isNullableFiniteNumber(value.weightKg) ||
+    !isSex(value.sex) ||
+    !isActivityLevel(value.activityLevel) ||
+    !isNutritionGoal(value.goal)
   ) {
     return null;
   }
 
   return {
-    version: 1,
-    profile: {
-      displayName: profile.displayName,
-      age: profile.age,
-      heightCm: profile.heightCm,
-      weightKg: profile.weightKg,
-      sex: profile.sex,
-      activityLevel: profile.activityLevel,
-      goal: profile.goal,
-    },
+    displayName: value.displayName,
+    age: value.age,
+    heightCm: value.heightCm,
+    weightKg: value.weightKg,
+    sex: value.sex,
+    activityLevel: value.activityLevel,
+    goal: value.goal,
+  };
+}
+
+function parseProfilePreferences(value: unknown): ProfilePreferences {
+  if (!isRecord(value)) {
+    return DEFAULT_PROFILE_PREFERENCES;
+  }
+
+  const supportedAllergens = new Set(
+    ALLERGEN_OPTIONS.map((option) => option.value)
+  );
+  const supportedDiningHalls = new Set(
+    DINING_HALL_OPTIONS.map((option) => option.value)
+  );
+
+  const excludedAllergens = Array.isArray(value.excludedAllergens)
+    ? value.excludedAllergens.filter((allergen) =>
+        supportedAllergens.has(allergen)
+      )
+    : DEFAULT_PROFILE_PREFERENCES.excludedAllergens;
+
+  const favoriteDiningHalls = Array.isArray(value.favoriteDiningHalls)
+    ? value.favoriteDiningHalls.filter((diningHall) =>
+        supportedDiningHalls.has(diningHall)
+      )
+    : DEFAULT_PROFILE_PREFERENCES.favoriteDiningHalls;
+
+  const defaultMealStyle = isMealStylePreference(value.defaultMealStyle)
+    ? value.defaultMealStyle
+    : DEFAULT_PROFILE_PREFERENCES.defaultMealStyle;
+
+  return {
+    excludedAllergens,
+    favoriteDiningHalls,
+    defaultMealStyle,
+  };
+}
+
+function parseStoredNutritionProfile(value: unknown): StoredNutritionProfile | null {
+  if (!isRecord(value) || !isUnitSystem(value.unitSystem)) {
+    return null;
+  }
+
+  const profile = parseNutritionProfile(value.profile);
+
+  if (profile === null) {
+    return null;
+  }
+
+  if (value.version === 1) {
+    return {
+      version: 2,
+      profile,
+      unitSystem: value.unitSystem,
+      preferences: DEFAULT_PROFILE_PREFERENCES,
+    };
+  }
+
+  if (value.version !== 2) {
+    return null;
+  }
+
+  return {
+    version: 2,
+    profile,
     unitSystem: value.unitSystem,
+    preferences: parseProfilePreferences(value.preferences),
   };
 }
 
@@ -101,12 +183,14 @@ export async function loadPersistedNutritionProfile() {
 
 export async function savePersistedNutritionProfile(
   profile: NutritionProfile,
-  unitSystem: UnitSystem
+  unitSystem: UnitSystem,
+  preferences = DEFAULT_PROFILE_PREFERENCES
 ) {
   const storedProfile: StoredNutritionProfile = {
-    version: 1,
+    version: 2,
     profile,
     unitSystem,
+    preferences,
   };
 
   await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(storedProfile));

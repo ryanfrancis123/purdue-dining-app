@@ -1,3 +1,5 @@
+import type { Allergen, DiningHall } from "./menu";
+
 export type ActivityLevel =
   | "sedentary"
   | "light"
@@ -12,6 +14,18 @@ export type NutritionGoal =
   | "performance";
 
 export type Sex = "male" | "female" | "prefer_not_to_say";
+
+export type MealStylePreference =
+  | "balanced"
+  | "higher_protein"
+  | "lower_calorie"
+  | "pre_workout";
+
+export interface ProfilePreferences {
+  excludedAllergens: Allergen[];
+  favoriteDiningHalls: DiningHall[];
+  defaultMealStyle: MealStylePreference | null;
+}
 
 export interface NutritionProfile {
   displayName: string | null;

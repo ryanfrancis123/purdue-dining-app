@@ -16,8 +16,13 @@ import {
 
 import type { MealRecommendation } from "../src/types/menu";
 import { MealRecommendationCard } from "../src/components/MealRecommendationCard";
+import {
+  ALLERGEN_OPTIONS,
+  DINING_HALL_OPTIONS,
+} from "../src/constants/menuOptions";
 import { getMenuItems } from "../src/services/menuRepository";
 import { recommendMeals } from "../src/utils/recommendMeals";
+import { loadPersistedNutritionProfile } from "../src/utils/profileStorage";
 import {
   MenuItem,
   MealPeriod,
@@ -151,10 +156,13 @@ export default function ManualRecommendationScreen() {
     MealPeriod | undefined
   >(undefined);
   const [excludedAllergens, setExcludedAllergens] = useState<Allergen[]>([]);
-  const allergenOptions: Allergen[] = ["milk", "egg", "wheat", "soy", "fish"];
   const [selectedDiningHall, setSelectedDiningHall] = useState<
     DiningHall | undefined
   >(undefined);
+  const [profileFavoriteDiningHalls, setProfileFavoriteDiningHalls] = useState<
+    DiningHall[]
+  >([]);
+  const [profileDefaultsApplied, setProfileDefaultsApplied] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoadingMenuItems, setIsLoadingMenuItems] = useState(true);
   const [menuItemsError, setMenuItemsError] = useState<string | null>(null);
@@ -201,15 +209,64 @@ export default function ManualRecommendationScreen() {
   }, [selectedMeal, sheetSlideAnim]);
 
 
-  const diningHallOptions: DiningHall[] = [
-    "Wiley",
-    "Windsor",
-    "Ford",
-    "Earhart",
-    "Hillenbrand",
-  ];
+  const diningHallOptions = DINING_HALL_OPTIONS.map((option) => option.value);
 
   const [targets, setTargets] = useState<MacroTargets>(initialTargets.targets);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProfilePreferences() {
+      try {
+        const storedProfile = await loadPersistedNutritionProfile();
+
+        if (!isMounted || storedProfile === null) {
+          return;
+        }
+
+        const storedPreferences = storedProfile.preferences;
+        const appliedDefaults =
+          storedPreferences.excludedAllergens.length > 0 ||
+          storedPreferences.favoriteDiningHalls.length > 0 ||
+          (!hasValidRouteTargets && storedPreferences.defaultMealStyle !== null);
+
+        setExcludedAllergens(storedPreferences.excludedAllergens);
+        setProfileFavoriteDiningHalls(storedPreferences.favoriteDiningHalls);
+
+        if (storedPreferences.favoriteDiningHalls.length === 1) {
+          setSelectedDiningHall(storedPreferences.favoriteDiningHalls[0]);
+        }
+
+        if (!hasValidRouteTargets && storedPreferences.defaultMealStyle !== null) {
+          const profilePreset = TARGET_PRESETS.find(
+            (preset) => preset.id === storedPreferences.defaultMealStyle
+          );
+
+          if (profilePreset) {
+            setSelectedPresetId(profilePreset.id);
+            setCaloriesInput(profilePreset.calories);
+            setProteinInput(profilePreset.protein);
+            setCarbsInput(profilePreset.carbs);
+            setTargets({
+              calories: Number(profilePreset.calories),
+              protein: Number(profilePreset.protein),
+              carbs: Number(profilePreset.carbs),
+            });
+          }
+        }
+
+        setProfileDefaultsApplied(appliedDefaults);
+      } catch (error) {
+        console.warn("Could not load profile preferences.", error);
+      }
+    }
+
+    loadProfilePreferences();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hasValidRouteTargets]);
 
   const recommendations = recommendMeals(
     menuItems,
@@ -287,6 +344,9 @@ export default function ManualRecommendationScreen() {
 
             <View style={styles.presetSection}>
             <Text style={styles.sectionLabel}>Quick targets</Text>
+            {profileDefaultsApplied ? (
+                <Text style={styles.profileDefaultsText}>Profile defaults applied</Text>
+            ) : null}
 
             <View style={styles.presetGrid}>
                 {TARGET_PRESETS.map((preset) => {
@@ -464,6 +524,37 @@ export default function ManualRecommendationScreen() {
             <View style={styles.filterSection}>
             <Text style={styles.filterTitle}>Dining Hall</Text>
 
+            {profileFavoriteDiningHalls.length > 1 ? (
+                <View style={styles.profileFavoritesBlock}>
+                <Text style={styles.profileFavoritesLabel}>Profile favorites</Text>
+                <View style={styles.filterRow}>
+                    {profileFavoriteDiningHalls.map((diningHall) => {
+                    const isSelected = selectedDiningHall === diningHall;
+
+                    return (
+                        <TouchableOpacity
+                        key={diningHall}
+                        style={[
+                            styles.profileFavoriteButton,
+                            isSelected && styles.activeFilterButton,
+                        ]}
+                        onPress={() => setSelectedDiningHall(diningHall)}
+                        >
+                        <Text
+                            style={[
+                            styles.filterButtonText,
+                            isSelected && styles.activeFilterButtonText,
+                            ]}
+                        >
+                            {diningHall}
+                        </Text>
+                        </TouchableOpacity>
+                    );
+                    })}
+                </View>
+                </View>
+            ) : null}
+
             <View style={styles.filterRow}>
                 <TouchableOpacity
                 style={[
@@ -511,9 +602,13 @@ export default function ManualRecommendationScreen() {
 
             <View style={styles.filterSection}>
             <Text style={styles.filterTitle}>Exclude Allergens</Text>
+            {excludedAllergens.length > 0 && profileDefaultsApplied ? (
+                <Text style={styles.profileDefaultsText}>Profile defaults applied</Text>
+            ) : null}
 
             <View style={styles.filterRow}>
-                {allergenOptions.map((allergen) => {
+                {ALLERGEN_OPTIONS.map((option) => {
+                const allergen = option.value;
                 const isSelected = excludedAllergens.includes(allergen);
 
                 return (
@@ -531,7 +626,7 @@ export default function ManualRecommendationScreen() {
                         isSelected && styles.activeFilterButtonText,
                         ]}
                     >
-                        {allergen}
+                        {option.label}
                     </Text>
                     </TouchableOpacity>
                 );
@@ -1009,6 +1104,32 @@ presetDescription: {
   fontSize: 13,
   lineHeight: 18,
   color: "#6B7280",
+},
+profileDefaultsText: {
+  marginBottom: 10,
+  fontSize: 13,
+  lineHeight: 18,
+  fontWeight: "700",
+  color: "#166534",
+},
+profileFavoritesBlock: {
+  marginBottom: 12,
+},
+profileFavoritesLabel: {
+  marginBottom: 8,
+  fontSize: 12,
+  fontWeight: "800",
+  color: "#6b7280",
+  textTransform: "uppercase",
+  letterSpacing: 0.6,
+},
+profileFavoriteButton: {
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderRadius: 999,
+  borderWidth: 1,
+  borderColor: "#ead8b6",
+  backgroundColor: "#fffaf0",
 },
 floatingBackButton: {
   position: "absolute",

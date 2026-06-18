@@ -19,6 +19,14 @@ import type { DimensionValue } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
+  ALLERGEN_OPTIONS,
+  DINING_HALL_OPTIONS,
+} from "../src/constants/menuOptions";
+import {
+  DEFAULT_PROFILE_PREFERENCES,
+  MEAL_STYLE_OPTIONS,
+} from "../src/constants/preferenceOptions";
+import {
   NUTRITION_GOAL_OPTIONS,
   SEX_OPTIONS,
 } from "../src/constants/profileOptions";
@@ -29,7 +37,15 @@ import {
   type UnitSystem,
 } from "../src/utils/profileStorage";
 import { estimateMealMacroTarget } from "../src/utils/profileTargets";
-import type { ActivityLevel, NutritionGoal, NutritionProfile, Sex } from "../src/types/profile";
+import type { Allergen, DiningHall } from "../src/types/menu";
+import type {
+  ActivityLevel,
+  MealStylePreference,
+  NutritionGoal,
+  NutritionProfile,
+  ProfilePreferences,
+  Sex,
+} from "../src/types/profile";
 
 const CM_PER_INCH = 2.54;
 const KG_PER_POUND = 0.45359237;
@@ -138,6 +154,11 @@ export default function ProfileScreen() {
   const [goal, setGoal] = useState<NutritionGoal | null>(null);
 
   const [savedProfile, setSavedProfile] = useState<NutritionProfile | null>(null);
+  const [preferences, setPreferences] =
+    useState<ProfilePreferences>(DEFAULT_PROFILE_PREFERENCES);
+  const [preferenceSaveStatus, setPreferenceSaveStatus] = useState<string | null>(
+    null
+  );
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [dashboardSection, setDashboardSection] =
     useState<DashboardSection>("summary");
@@ -160,6 +181,7 @@ export default function ProfileScreen() {
         setSex(storedProfile.profile.sex);
         setActivityLevel(storedProfile.profile.activityLevel);
         setGoal(storedProfile.profile.goal);
+        setPreferences(storedProfile.preferences);
       } catch (error) {
         console.warn("Could not load saved profile.", error);
       } finally {
@@ -225,6 +247,8 @@ export default function ProfileScreen() {
               setActivityLevel(null);
               setGoal(null);
               setUnitSystem("us");
+              setPreferences(DEFAULT_PROFILE_PREFERENCES);
+              setPreferenceSaveStatus(null);
               setCurrentStep("intro");
               setIsEditingProfile(false);
               setDashboardSection("summary");
@@ -258,9 +282,61 @@ export default function ProfileScreen() {
     setSavedProfile(profile);
     setIsEditingProfile(false);
 
-    savePersistedNutritionProfile(profile, unitSystem).catch((error) => {
+    savePersistedNutritionProfile(profile, unitSystem, preferences).catch((error) => {
       console.warn("Could not save profile.", error);
     });
+  };
+
+  const toggleExcludedAllergenPreference = (allergen: Allergen) => {
+    setPreferenceSaveStatus(null);
+    setPreferences((currentPreferences) => {
+      const isSelected = currentPreferences.excludedAllergens.includes(allergen);
+
+      return {
+        ...currentPreferences,
+        excludedAllergens: isSelected
+          ? currentPreferences.excludedAllergens.filter((item) => item !== allergen)
+          : [...currentPreferences.excludedAllergens, allergen],
+      };
+    });
+  };
+
+  const toggleFavoriteDiningHallPreference = (diningHall: DiningHall) => {
+    setPreferenceSaveStatus(null);
+    setPreferences((currentPreferences) => {
+      const isSelected = currentPreferences.favoriteDiningHalls.includes(diningHall);
+
+      return {
+        ...currentPreferences,
+        favoriteDiningHalls: isSelected
+          ? currentPreferences.favoriteDiningHalls.filter((item) => item !== diningHall)
+          : [...currentPreferences.favoriteDiningHalls, diningHall],
+      };
+    });
+  };
+
+  const setDefaultMealStylePreference = (
+    defaultMealStyle: MealStylePreference | null
+  ) => {
+    setPreferenceSaveStatus(null);
+    setPreferences((currentPreferences) => ({
+      ...currentPreferences,
+      defaultMealStyle,
+    }));
+  };
+
+  const handleSavePreferences = () => {
+    if (savedProfile === null) {
+      return;
+    }
+
+    savePersistedNutritionProfile(savedProfile, unitSystem, preferences)
+      .then(() => {
+        setPreferenceSaveStatus("Preferences saved");
+      })
+      .catch((error) => {
+        console.warn("Could not save preferences.", error);
+      });
   };
 
   const setUsHeight = (part: "feet" | "inches", value: number) => {
@@ -654,6 +730,37 @@ export default function ProfileScreen() {
     );
   }
 
+  function renderPreferenceChip({
+    isSelected,
+    label,
+    onPress,
+  }: {
+    isSelected: boolean;
+    label: string;
+    onPress: () => void;
+  }) {
+    return (
+      <Pressable
+        key={label}
+        style={[
+          styles.preferenceEditChip,
+          isSelected && styles.preferenceEditChipSelected,
+        ]}
+        onPress={onPress}
+        accessibilityRole="button"
+      >
+        <Text
+          style={[
+            styles.preferenceEditChipText,
+            isSelected && styles.preferenceEditChipTextSelected,
+          ]}
+        >
+          {label}
+        </Text>
+      </Pressable>
+    );
+  }
+
   function renderPreferenceSettingsRow({
     iconName,
     label,
@@ -945,7 +1052,7 @@ export default function ProfileScreen() {
                 iconName: "tune",
                 title: "Preferences",
                 body:
-                  "Preview the preference types you will be able to set later.",
+                  "Set visible defaults for manual recommendations. You can override them anytime.",
               })}
 
               <View style={styles.summaryCard}>
@@ -956,30 +1063,13 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Dietary Preferences</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Example diet-style options for future setup
+                      Dietary filtering will be added when menu details support it reliably
                     </Text>
                   </View>
                 </View>
-                <View style={styles.preferenceChipGrid}>
-                  {renderPreferencePreviewChip({
-                    iconName: "eco",
-                    label: "Diet style",
-                  })}
-                  {renderPreferencePreviewChip({
-                    iconName: "spa",
-                    label: "Plant-forward",
-                  })}
-                  {renderPreferencePreviewChip({
-                    iconName: "brightness-2",
-                    label: "Religious needs",
-                  })}
-                  {renderPreferencePreviewChip({
-                    iconName: "grain",
-                    label: "Ingredient limits",
-                  })}
-                </View>
                 <Text style={styles.dashboardPlaceholderBody}>
-                  These are examples of preferences you will be able to set later.
+                  This app will not label meals for dietary suitability until those
+                  details are reliable.
                 </Text>
               </View>
 
@@ -991,28 +1081,22 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Allergens & Restrictions</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Example safety filters for future setup
+                      Exclude menu items with selected listed allergens by default
                     </Text>
                   </View>
                 </View>
                 <View style={styles.preferenceChipGrid}>
-                  {renderPreferencePreviewChip({
-                    iconName: "warning",
-                    label: "Allergens",
-                  })}
-                  {renderPreferencePreviewChip({
-                    iconName: "park",
-                    label: "Cross-contact",
-                  })}
-                  {renderPreferencePreviewChip({
-                    iconName: "local-drink",
-                    label: "Diet restrictions",
-                  })}
-                  {renderPreferencePreviewChip({
-                    iconName: "egg",
-                    label: "Ingredient alerts",
-                  })}
+                  {ALLERGEN_OPTIONS.map((option) =>
+                    renderPreferenceChip({
+                      isSelected: preferences.excludedAllergens.includes(option.value),
+                      label: option.label,
+                      onPress: () => toggleExcludedAllergenPreference(option.value),
+                    })
+                  )}
                 </View>
+                <Text style={styles.preferenceHelpText}>
+                  These are manual exclusions based on listed allergens, not medical advice.
+                </Text>
               </View>
 
               <View style={styles.summaryCard}>
@@ -1023,15 +1107,16 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Favorite Dining Halls</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Example location preferences for future setup
+                      Use preferred halls as visible defaults in manual mode
                     </Text>
                   </View>
                 </View>
                 <View style={styles.preferenceChipGrid}>
-                  {["Dining halls", "Nearby spots", "Frequent stops", "Avoid list"].map((hall) =>
-                    renderPreferencePreviewChip({
-                      iconName: "restaurant",
-                      label: hall,
+                  {DINING_HALL_OPTIONS.map((option) =>
+                    renderPreferenceChip({
+                      isSelected: preferences.favoriteDiningHalls.includes(option.value),
+                      label: option.label,
+                      onPress: () => toggleFavoriteDiningHallPreference(option.value),
                     })
                   )}
                 </View>
@@ -1045,29 +1130,37 @@ export default function ProfileScreen() {
                   <View style={styles.summaryCardTitleGroup}>
                     <Text style={styles.summaryCardTitle}>Meal Style Preferences</Text>
                     <Text style={styles.summaryCardSubtitle}>
-                      Example meal-style options for future setup
+                      Choose a default quick target for manual recommendations
                     </Text>
                   </View>
                 </View>
                 <View style={styles.preferenceChipGrid}>
-                  {renderPreferencePreviewChip({
-                    iconName: "fitness-center",
-                    label: "Protein focus",
+                  {renderPreferenceChip({
+                    isSelected: preferences.defaultMealStyle === null,
+                    label: "No Default",
+                    onPress: () => setDefaultMealStylePreference(null),
                   })}
-                  {renderPreferencePreviewChip({
-                    iconName: "balance",
-                    label: "Balance style",
-                  })}
-                  {renderPreferencePreviewChip({
-                    iconName: "eco",
-                    label: "Macro focus",
-                  })}
-                  {renderPreferencePreviewChip({
-                    iconName: "sentiment-satisfied",
-                    label: "Meal mood",
-                  })}
+                  {MEAL_STYLE_OPTIONS.map((option) =>
+                    renderPreferenceChip({
+                      isSelected: preferences.defaultMealStyle === option.value,
+                      label: option.label,
+                      onPress: () => setDefaultMealStylePreference(option.value),
+                    })
+                  )}
                 </View>
               </View>
+
+              <Pressable
+                style={styles.summaryEditButton}
+                onPress={handleSavePreferences}
+                accessibilityRole="button"
+              >
+                <MaterialIcons name="save" size={19} color="#f2c766" />
+                <Text style={styles.summaryEditButtonText}>Save Preferences</Text>
+              </Pressable>
+              {preferenceSaveStatus ? (
+                <Text style={styles.preferenceSaveStatus}>{preferenceSaveStatus}</Text>
+              ) : null}
 
               <View style={styles.summaryCard}>
                 <View style={styles.summaryCardHeader}>
@@ -2475,6 +2568,45 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: "800",
     color: "#6b4f16",
+  },
+
+  preferenceEditChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+
+  preferenceEditChipSelected: {
+    borderColor: "#111",
+    backgroundColor: "#111",
+  },
+
+  preferenceEditChipText: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#333",
+  },
+
+  preferenceEditChipTextSelected: {
+    color: "#fff",
+  },
+
+  preferenceHelpText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#6b7280",
+  },
+
+  preferenceSaveStatus: {
+    textAlign: "center",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800",
+    color: "#166534",
   },
 
   preferenceSettingsList: {
