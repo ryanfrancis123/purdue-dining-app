@@ -9,6 +9,18 @@ export type MenuCategory =
   | "sauce"
   | "other";
 
+export const SUPPORTED_MENU_CATEGORIES = [
+  "protein",
+  "carb",
+  "vegetable",
+  "fruit",
+  "side",
+  "dessert",
+  "drink",
+  "sauce",
+  "other",
+] as const;
+
 export type Allergen =
   | "milk"
   | "egg"
@@ -20,6 +32,18 @@ export type Allergen =
   | "shellfish"
   | "sesame";
 
+export const SUPPORTED_ALLERGENS = [
+  "milk",
+  "egg",
+  "wheat",
+  "soy",
+  "fish",
+  "peanut",
+  "tree_nut",
+  "shellfish",
+  "sesame",
+] as const;
+
 export type DiningHall =
   | "Wiley"
   | "Windsor"
@@ -28,11 +52,41 @@ export type DiningHall =
   | "Hillenbrand"
   | "Unknown";
 
+export const SUPPORTED_DINING_HALLS = [
+  "Wiley",
+  "Windsor",
+  "Ford",
+  "Earhart",
+  "Hillenbrand",
+  "Unknown",
+] as const;
+
+export const IMPORTABLE_DINING_HALLS = [
+  "Wiley",
+  "Windsor",
+  "Ford",
+  "Earhart",
+  "Hillenbrand",
+] as const;
+
 export type MealPeriod =
   | "breakfast"
   | "lunch"
   | "dinner"
   | "all_day";
+
+export const SUPPORTED_MEAL_PERIODS = [
+  "breakfast",
+  "lunch",
+  "dinner",
+  "all_day",
+] as const;
+
+export const SUPPORTED_DIETARY_TAGS = [
+  "vegetarian",
+  "vegan",
+  "high_protein",
+] as const;
 
 export interface MenuItem {
   id: string;

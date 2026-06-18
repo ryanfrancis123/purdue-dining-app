@@ -1,84 +1,140 @@
 # Supabase Schema
 
-## Module 2 Goal
+Supabase stores structured dining hall menu item data for the Purdue Dining App.
+The mobile app reads Supabase first and falls back to bundled local data if
+Supabase fails or returns no active rows.
 
-Supabase will store dining hall menu item data for the Purdue Dining App.
+## Design Rules
 
-The local sample data will remain in the app while Supabase is introduced. The app should not depend fully on Supabase until the database connection and fallback behavior are stable.
+- Keep the UUID `id` primary key.
+- Keep `is_active` as the app-facing visibility switch.
+- Keep existing seed rows valid.
+- Add live-ingestion fields as nullable metadata until live ingestion is proven.
+- Preserve local fallback data.
+- Preserve saved meal snapshots and meal logs even if live rows later change.
 
-## MVP Table
+## `menu_items`
 
-### menu_items
+Stores individual dining hall food/menu items with nutrition data, allergens,
+dietary tags, meal metadata, and optional live-ingestion provenance.
 
-Stores individual dining hall food/menu items with nutrition data, allergens, dietary tags, and meal metadata.
+### Current App Fields
 
 | Column | Type | Notes |
 |---|---|---|
 | id | uuid | Primary key |
 | name | text | Food item name |
-| dining_hall | text | Dining hall name |
-| meal_period | text | breakfast, lunch, dinner |
-| category | text | protein, carb, side, vegetable, dessert, drink |
+| dining_hall | text | Wiley, Windsor, Ford, Earhart, Hillenbrand |
+| meal_period | text | breakfast, lunch, dinner, all_day |
+| category | text | protein, carb, vegetable, fruit, side, dessert, drink, sauce, other |
 | calories | integer | Calories per serving |
 | protein_g | numeric | Protein in grams |
 | carbs_g | numeric | Carbs in grams |
 | fat_g | numeric | Fat in grams |
-| allergens | text[] | Allergen list |
-| dietary_tags | text[] | Dietary/diet labels |
+| allergens | text[] | Supported allergen list |
+| dietary_tags | text[] | vegetarian, vegan, high_protein |
 | serving_size | text | Serving size text |
 | source | text | Data source label |
 | is_active | boolean | Whether item appears in app |
 | created_at | timestamptz | Creation timestamp |
 | updated_at | timestamptz | Last update timestamp |
 
-## Design Rule
+### Live Ingestion Metadata
 
-Do not remove local sample data yet.
+The migration in `supabase/migrations/20260618000000_add_live_menu_ingestion_fields.sql`
+adds these nullable fields:
 
-The app will eventually support:
+| Column | Type | Notes |
+|---|---|---|
+| serving_date | date | Date the item is served |
+| station | text | Dining station or serving area |
+| source_system | text | Source namespace, e.g. purdue_dining |
+| source_url | text | Source page or endpoint URL |
+| source_item_id | text | Source-provided item ID, if available |
+| source_occurrence_key | text | Deterministic upsert key for a source/date/hall/meal/station occurrence |
+| normalized_name | text | Normalized item name used for matching/reporting |
+| last_fetched_at | timestamptz | Fetch time for latest ingestion run |
+| first_seen_at | timestamptz | First time this occurrence was seen |
+| last_seen_at | timestamptz | Most recent time this occurrence was seen |
+| nutrition_status | text | complete, partial, missing |
+| allergen_status | text | provided, not_provided, unknown |
+| raw_payload | jsonb | Source payload excerpt for debugging |
 
-- local sample data fallback
-- Supabase menu item fetching
-- mapping database rows into the existing MenuItem type
+The migration also adds indexes on:
 
-## Database Constraints
+- `is_active`
+- `serving_date`
+- `dining_hall`
+- `meal_period`
+- unique `source_occurrence_key` where it is not null
 
-The `menu_items` table includes database-level constraints to prevent invalid menu data from being inserted.
+## Normalized Ingestion Record
 
-### Meal Period Constraint
+Future ingestion scripts should normalize source data into records with:
 
-Allowed values:
+```txt
+source_system
+source_item_id
+source_occurrence_key
+name
+normalized_name
+dining_hall
+meal_period
+category
+serving_date
+station
+calories
+protein
+carbs
+fat
+nutrition_status
+allergens
+allergen_status
+dietary_tags
+serving_size
+source_url
+fetched_at
+raw_payload
+```
 
-- `breakfast`
-- `lunch`
-- `dinner`
+Nutrition values may be `null` in normalized ingestion data. Missing values must
+not be converted to zero. Records without enough nutrition for scoring should be
+reported and later excluded from recommendation rows rather than misrepresented.
 
-### Category Constraint
+Missing allergen data is not allergen-free. Use `allergen_status = 'unknown'`
+or `not_provided` when the source does not provide reliable allergen data.
 
-Allowed values:
+## Upsert Key
 
-- `protein`
-- `carb`
-- `side`
-- `vegetable`
-- `dessert`
-- `drink`
+Live upserts should use `source_occurrence_key`, not the UUID `id`.
 
-### Dining Hall Constraint
+Recommended key shape when source IDs exist:
 
-Allowed values:
+```txt
+source_system|serving_date|dining_hall|meal_period|station|source_item_id
+```
 
-- `Wiley`
-- `Ford`
-- `Earhart`
-- `Windsor`
-- `Hillenbrand`
-- `The Gathering Place`
+If no stable source ID exists, use a carefully normalized fallback that includes
+date, hall, meal period, station, normalized name, and serving size.
 
-These constraints protect the app from invalid Supabase data such as misspelled meal periods, unsupported categories, or fake dining halls.
+## Ingestion Lifecycle
 
-## Automatic Updated Timestamp
+```txt
+fetch -> normalize -> validate -> report -> upsert -> deactivate stale rows
+```
 
-The `menu_items` table uses a database trigger to automatically update the `updated_at` column whenever an existing row is edited.
+The mobile app must never scrape Purdue directly. Supabase remains the
+app-facing structured source, and bundled local data remains the fallback.
 
-This prevents the app or admin tools from needing to manually set `updated_at` during updates.
+Stale live rows should be deactivated by source/date scope. For example, after
+successfully ingesting a source system and serving date, rows for that same
+source/date that were not seen in the latest run should be marked inactive.
+
+## Migration
+
+Do not run the migration automatically from the app. Apply it deliberately in
+Supabase after reviewing:
+
+```txt
+supabase/migrations/20260618000000_add_live_menu_ingestion_fields.sql
+```
